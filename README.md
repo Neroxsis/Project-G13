@@ -6,7 +6,7 @@ Todo (unfinished):
 
 *	Distanz und Winkel messen #
 *	Lookup tables für die Berechnungen #
-*	Anfang und Ende erkennen (Geschwindigkeit und Höhe gleich null)
+*	Anfang und Ende erkennen (Geschwindigkeit und Höhe gleich null) [Simona]
 *	Kalibrierungen und Signale (per LED)
 *	Fahren zum Ursprung
 *	Objekterkennung
