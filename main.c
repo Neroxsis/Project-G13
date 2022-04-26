@@ -10,11 +10,16 @@
 #include <chprintf.h>
 #include <motors.h>
 #include <audio/microphone.h>
+#include "sensors/proximity.h"
 
 #include <arm_math.h>
 
-static float sinus[91]; // from 0 to 90 degree
-static float cosinus[91];
+#include <constants.h>
+#include "calculations.h"
+
+messagebus_t bus;
+MUTEX_DECL(bus_lock);
+CONDVAR_DECL(bus_condvar);
 
 static void serial_start(void)
 {
@@ -28,22 +33,7 @@ static void serial_start(void)
 	sdStart(&SD3, &ser_cfg); // UART3.
 }
 
-
-static void timer12_start(void){
-    //General Purpose Timer configuration   
-    //timer 12 is a 16 bit timer so we can measure time
-    //to about 65ms with a 1Mhz counter
-    static const GPTConfig gpt12cfg = {
-        1000000,        /* 1MHz timer clock in order to measure uS.*/
-        NULL,           /* Timer callback.*/
-        0,
-        0
-    };
-
-    gptStart(&GPTD12, &gpt12cfg);
-    //let the timer count to max value
-    gptStartContinuous(&GPTD12, 0xFFFF);
-}
+uint8_t no_mvmt_detected(imu_msg_t* imu_values);
 
 static THD_WORKING_AREA(waThdGoalCalculations, 128);
 static THD_FUNCTION(ThdGoalCalculations, arg) {
@@ -63,6 +53,7 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
     float y_position = 0;
 
     int16_t relative_rotation = 0;
+    int16_t rotation_speed =0;
     int16_t theta = 0; 		// theta = arctan(y/x) to calculate angle_to_goal
 
     float period = 0; // because float * float faster than float * int
@@ -125,13 +116,11 @@ static THD_FUNCTION(ThdObstacleDetection, arg) {
     systime_t time;
 
     uint8_t object_detected = 0;
-#define FRONT_LEFT_IR_SENSOR 5
-#define FRONT_RIGHT_IR_SENSOR 0
-#define TH 42
+
     while(!object_detected){
     	// Test for object
     	if(get_calibrated_prox(FRONT_LEFT_IR_SENSOR) > TH && get_calibrated_prox(FRONT_RIGHT_IR_SENSOR) > TH){
-    		object_detected = 1
+    		object_detected = 1;
     	}
     	// Sleep
     }
@@ -147,7 +136,7 @@ static THD_FUNCTION(ThdObstacleDetection, arg) {
     			}
     			break;
     		case 2:
-    			if(get_calibrated_prix(RIGHT_IR_SENSOR) > TH){
+    			if(get_calibrated_prox(RIGHT_IR_SENSOR) > TH){
     				object_detected = 1;
     			}
     			break;	// test side sensors while turning
@@ -157,7 +146,7 @@ static THD_FUNCTION(ThdObstacleDetection, arg) {
     	}
     }
 }
-
+/* Thread movement
 static THD_WORKING_AREA(waThdMovement, 128);
 static THD_FUNCTION(ThdMovement, arg) { // evt in main
 
@@ -202,67 +191,7 @@ static THD_FUNCTION(ThdMovement, arg) { // evt in main
     	// Test for obstacle warning
     	// switch to regular behavior
     }
-}
-
-float get_sin(int16_t angle){
-#define PI_DEG 180
-	static float sinus[91] = {0};
-	while(angle >= 360) { angle -= 360; }
-	while(angle <= 360) { angle += 360; }
-	// angle between without -360 to 360
-	if(angle >= 0){
-		if(angle <= 90){ // Quadrant I
-			return sinus[angle];
-		}else if(angle <= 180){ // Quadrant II
-			return sinus[PI_DEG - angle];
-		}else if(angle <= 270){ // Quadrant III
-			return -sinus[angle - PI_DEG];
-		}else if(angle <= 360){ // < 360  Quadrant IV
-			return -sinus[2*PI_DEG - angle];
-		}
-	}else{	// negative angle
-		if(angle >= -90){ // Quadrant IV
-			return -sinus[-angle];
-		}else if(angle >= -180){ // Quadrant III
-			return -sinus[PI_DEG + angle];
-		}else if(angle >= -270){ // Quadrant II
-			return sinus[-(PI_DEG + angle)];
-		}else if(angle >= -360){ // > -360  Quadrant I
-			return sinus[2*PI_DEG + angle];
-		}
-	}
-	return 0;
-}
-
-float get_cos(int16_t angle){
-#define PI_DEG 180
-	static float cosinus[91] = {0};
-	while(angle >= 360) { angle -= 360; }
-	while(angle <= 360) { angle += 360; }
-	// angle between without -360 to 360
-	if(angle >= 0){
-		if(angle <= 90){
-			return cosinus[angle];
-		}else if(angle <= 180){
-			return -cosinus[PI_DEG - angle];
-		}else if(angle <= 270){
-			return -cosinus[angle - PI_DEG];
-		}else if(angle <= 360){ // < 360
-			return cosinus[2*PI_DEG - angle];
-		}
-	}else{	// negative angle
-		if(angle >= -90){
-			return cosinus[-angle];
-		}else if(angle >= -180){
-			return -cosinus[PI_DEG + angle];
-		}else if(angle >= -270){
-			return -cosinus[-(PI_DEG + angle)];
-		}else if(angle >= -360){ // > -360
-			return cosins[2*PI_DEG + angle];
-		}
-	}
-	return 0;
-}
+}*/
 
 uint8_t no_mvmt_detected(imu_msg_t* imu_values){
 #define THRESHHOLD 42
@@ -279,32 +208,6 @@ uint8_t no_mvmt_detected(imu_msg_t* imu_values){
 	}
 }
 
-void initLookup(void){
-	for(uint8_t i=0; i<91; i++){
-		sinus[i] = sin(i); // from math.h
-		cosinus[i] = cos(i);
-	}
-}
-
-int16_t get_gyro_deg(imu_msg_t *imu_values, uint8_t axis){
-#define RES_250DPS 250
-#define MAX_INT16 32768
-#define GYRO_RAW2DPS        (RES_250DPS / MAX_INT16)   //250DPS (degrees per second) scale for int16 raw value
-	int16_t gyro = 0;
-	switch(axis){
-	case X_AXIS:
-		gyro = (imu_values->gyro_raw[X_AXIS] - imu_values->gyro_offset[X_AXIS]) * GYRO_RAW2DPS;
-		break;
-	case Y_AXIS:
-		gyro = (imu_values->gyro_raw[Y_AXIS] - imu_values->gyro_offset[Y_AXIS]) * GYRO_RAW2DPS;
-		break;
-	case Z_AXIS:
-		gyro = (imu_values->gyro_raw[Z_AXIS] - imu_values->gyro_offset[Z_AXIS]) * GYRO_RAW2DPS;
-		break;
-	}
-	return gyro;
-}
-
 int main(void)
 {
 
@@ -312,17 +215,51 @@ int main(void)
     chSysInit();
     mpu_init();
 
-    //starts the serial communication
+    /** Inits the Inter Process Communication bus. */
+    messagebus_init(&bus, &bus_lock, &bus_condvar);
+
     serial_start();
-    //starts the USB communication
     usb_start();
-    //starts timer 12
-    timer12_start();
-    //inits the motors
     motors_init();
+    imu_start();
+    proximity_start();
 
     chThdCreateStatic(waThdGoalCalculations, sizeof(waThdGoalCalculations), NORMALPRIO, ThdGoalCalculations, NULL);
+    chThdCreateStatic(waThdObstacleDetection, sizeof(waThdObstacleDetection), NORMALPRIO, ThdObstacleDetection, NULL);
     //messagebus_topic_t *imu_topic = messagebus_find_topic_blocking(&bus, "/imu");
+
+    //infinite loop
+    while(1){
+    	uint8_t in_air = 0;
+    	uint8_t goal_reached = 0;
+    	int16_t relative_rotation = 0;
+    	int32_t rotation_steps = 0;
+    	float distance = 0; // mm
+    	float distance_steps = 0;
+
+    	while(!in_air && !goal_reached){
+    	    // First turn to destination
+    	    right_motor_set_pos(0);
+    	    // Calculate angle in rotation of wheel in steps
+    	    rotation_steps =  WHEEL_PERIM * ONE_TURN_STEPS * relative_rotation / (2*PI_DEG);
+    	    right_motor_set_speed(TURN_SPEED*sign(rotation_steps));
+    	    left_motor_set_speed(-TURN_SPEED*sign(rotation_steps));
+    	    do{
+    	    	//sleep
+    	    }while((abs(rotation_steps) > abs(right_motor_get_pos())));
+
+    	    // Drive distance in a straight line
+    	    right_motor_set_pos(0);
+    	    distance_steps = distance * ONE_TURN_STEPS / (WHEEL_PERIM * 10); // *10 as distance is in mm and perim in cm
+    	    right_motor_set_speed(DRIVE_SPEED);
+    	    left_motor_set_speed(DRIVE_SPEED);
+    	    do{
+    	    	//sleep
+    	    }while((abs(distance_steps) > abs(right_motor_get_pos())));
+    	    // Test for obstacle warning
+    	    // switch to regular behavior
+    	}
+    }
 }
 
 #define STACK_CHK_GUARD 0xe2dee396
