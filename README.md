@@ -4,8 +4,8 @@ E-puck2 Project BA6 2022
 
 Todo (unfinished):
 
-*	Distanz und Winkel messen
-*	Lookup tables für die Berechnungen
+*	Distanz und Winkel messen #
+*	Lookup tables für die Berechnungen #
 *	Anfang und Ende erkennen (Geschwindigkeit und Höhe gleich null)
 *	Kalibrierungen und Signale (per LED)
 *	Fahren zum Ursprung
