@@ -56,7 +56,7 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 
     uint16_t no_mvmt_counter = 0;
 
-    float x_speed = 0;  // mm/s oder 10^-1 mm/s
+    float x_speed = 0;  // mm/s
     float y_speed = 0;  // mm/s
 
     float x_position = 0;
@@ -81,7 +81,7 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
     while(!in_air){
     	if(imu_values.acceleration[Z_AXIS] > ACTIVATION_TH){
     		in_air = 1;
-    	}
+    	} // add sleep
     }
 
     while(in_air){
@@ -161,12 +161,37 @@ static THD_FUNCTION(ThdMovement, arg) {
 
     uint8_t in_air = 0;
     uint8_t goal_reached = 0;
+    int16_t realtive_position = 0;
+    int32_t rotation_steps = 0;
+    float distance = 0; // mm
+    float distance_steps = 0;
 
-    while(in_air && !goal_reached){
+
+#define ROTATION_TH 2
+#define ONE_TURN_STEPS 1000
+#define PI_DEG 180
+#define WHEEL_PERIM 13 //cm
+#define TURN_SPEED 800
+#define DRIVE_SPEED 1000
+    while(!in_air && !goal_reached){
         // First turn to destination
+    	right_motor_set_pos(0);
+    	// Calculate angle in rotation of wheel in steps
+    	rotation_steps = relative_rotation / (2*PI_DEG) * WHEEL_PERIM * ONE_TURN_STEPS;
+    	right_motor_set_speed(TURN_SPEED*sign(rotation_steps));
+    	left_motor_set_speed(-TURN_SPEED*sign(rotation_steps));
+    	do{
+    		//sleep
+    	}while((abs(rotation_steps) > abs(right_motor_get_pos())));
 
     	// Drive distance in a straight line
-
+    	right_motor_set_pos(0);
+    	distance_steps = distance / (WHEEL_PERIM * 10) * ONE_TURN_STEPS; // *10 as distance is in mm and perim in cm
+    	right_motor_set_speed(DRIVE_SPEED);
+    	left_motor_set_speed(DRIVE_SPEED);
+    	do{
+    		//sleep
+    	}while((abs(distance_steps) > abs(right_motor_get_pos())));
     	// Test for obstacle warning
     	// switch to regulate behavior
     }
