@@ -125,34 +125,41 @@ static THD_FUNCTION(ThdObstacleDetection, arg) {
     systime_t time;
 
     uint8_t object_detected = 0;
-
+#define FRONT_LEFT_IR_SENSOR 5
+#define FRONT_RIGHT_IR_SENSOR 0
+#define TH 42
     while(!object_detected){
-    	// Read front two Sensors
-
     	// Test for object
-
-    	// Set object_detected to 1
+    	if(get_calibrated_prox(FRONT_LEFT_IR_SENSOR) > TH && get_calibrated_prox(FRONT_RIGHT_IR_SENSOR) > TH){
+    		object_detected = 1
+    	}
+    	// Sleep
     }
 
     while(object_detected){
-    	// Switch case 1
 
-        // Read right or left sensor maybe the two further back as well
-
-    	// Test for object
-
-    	// If no sensor detects an object set object_detected to 2
-
-    	// switch case 2
-
-    	// test side sensors while turning
-
-    	// further algorithms
+    	switch(object_detected){
+    		case 1:
+    			// Read right or left sensor maybe the two further back as well
+    			// If no sensor detects an object set object_detected to 2
+    			if(get_calibrated_prox(RIGHT_IR_SENSOR) < TH && get_calibrated_prox(RIGHT_BACK_IR_SENSOR) > TH){
+    				object_detected = 2;
+    			}
+    			break;
+    		case 2:
+    			if(get_calibrated_prix(RIGHT_IR_SENSOR) > TH){
+    				object_detected = 1;
+    			}
+    			break;	// test side sensors while turning
+    						// further algorithms to set object_detected to 0
+    		default:
+    			break;
+    	}
     }
 }
 
 static THD_WORKING_AREA(waThdMovement, 128);
-static THD_FUNCTION(ThdMovement, arg) {
+static THD_FUNCTION(ThdMovement, arg) { // evt in main
 
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
@@ -193,7 +200,7 @@ static THD_FUNCTION(ThdMovement, arg) {
     		//sleep
     	}while((abs(distance_steps) > abs(right_motor_get_pos())));
     	// Test for obstacle warning
-    	// switch to regulate behavior
+    	// switch to regular behavior
     }
 }
 
