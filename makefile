@@ -11,7 +11,7 @@ GLOBAL_PATH = ../../lib/e-puck2_main-processor
 #Source files to include
 CSRC += ./main.c \
 		./calculations.c \
-
+		./detection.c \
 
 #Header folders to include
 INCDIR += ./constants.h \

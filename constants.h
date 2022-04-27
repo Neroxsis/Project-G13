@@ -21,6 +21,12 @@
 #define FRONT_RIGHT_IR_SENSOR 0
 #define RIGHT_IR_SENSOR 2
 #define RIGHT_BACK_IR_SENSOR 3
+#define RIGHT_FRONT_IR_SENSOR 1
 #define TH 42
+
+// no magic numbers
+#define CLEAR 0
+#define OFF 0
+#define GET 5
 
 #endif /* CONSTANTS_H */

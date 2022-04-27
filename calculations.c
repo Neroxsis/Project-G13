@@ -2,14 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <arm_math.h>
-#include "constants.h"
+#include <constants.h>
 #include <calculations.h>
 
 static float sine[91]; // from 0 to 90 degree
 static float cosine[91];
 
 // filling out the first quadrant for each degree of sine and cosine
-void initLookup(void){
+void lookup_init(void){
 	for(uint8_t i=0; i<91; i++){
 		sine[i] = sin(i); // from math.h
 		cosine[i] = cos(i);
