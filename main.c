@@ -150,12 +150,9 @@ static THD_FUNCTION(ThdObstacleDetection, arg) {
 uint8_t no_mvmt_detected(imu_msg_t* imu_values){
 #define THRESHHOLD 42
 #define GYRO_THRESHHOLD 2
-	if(imu_values->acceleration[X_AXIS] < THRESHHOLD &&
-			imu_values->acceleration[Y_AXIS] < THRESHHOLD &&
-			imu_values->acceleration[Z_AXIS] < THRESHHOLD &&
-			imu_values->gyro_rate[X_AXIS] < GYRO_THRESHHOLD &&
-			imu_values->gyro_rate[Y_AXIS] < GYRO_THRESHHOLD &&
-			imu_values->gyro_rate[Z_AXIS] < GYRO_THRESHHOLD){
+	if(x_speed < THRESHHOLD &&
+		y_speed < THRESHHOLD &&
+		rotation_speed < THRESHHOLD ){
 		return 1;
 	}else{
 		return 0;
