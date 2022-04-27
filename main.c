@@ -187,21 +187,22 @@ int main(void)
 
     //infinite loop
     while(1){
-    	uint8_t goal_reached = 0;
-    	int16_t relative_rotation = 0;
-    	int32_t rotation_steps = 0;
-    	float distance = 0; // mm
-    	float distance_steps = 0;
+    	static uint8_t goal_reached = 0;
+    	static int16_t relative_rotation = 0;
+    	static int32_t rotation_steps = 0;
+    	static float distance = 0; // mm
+    	static float distance_steps = 0;
 
     	while(!in_air(GET) && !goal_reached){
     	    // First turn to destination
     	    right_motor_set_pos(CLEAR);
     	    // Calculate angle in rotation of wheel in steps
-    	    rotation_steps =  WHEEL_PERIM * ONE_TURN_STEPS * relative_rotation / (2*PI_DEG);
+    	    rotation_steps = ONE_TURN_STEPS * relative_rotation / (2*PI_DEG);
     	    right_motor_set_speed(TURN_SPEED*sign(rotation_steps));
     	    left_motor_set_speed(-TURN_SPEED*sign(rotation_steps));
     	    do{ // turn right or left
     	    	//sleep
+    	    	chThdSleepMilliseconds(50);
     	    }while((abs(rotation_steps) > abs(right_motor_get_pos())));
 
     	    // Drive distance in a straight line
@@ -211,10 +212,16 @@ int main(void)
     	    left_motor_set_speed(DRIVE_SPEED);
     	    do{
     	    	//sleep
+    	    	chThdSleepMilliseconds(50);
     	    	if(get_object_det()){
     	    		right_motor_set_pos(evade_obj_alg());
     	    	}
     	    }while((abs(distance_steps) > abs(right_motor_get_pos())));
+
+    	    while(1){
+    	    	right_motor_set_speed(OFF);
+    	    	left_motor_set_speed(OFF);
+    	    } // finished
     	}
     }
 }
