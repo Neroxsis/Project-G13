@@ -232,15 +232,12 @@ float get_cos(int16_t angle){
 	return 0;
 }
 
-uint8_t no_mvmt_detected(imu_msg_t* imu_values){
+uint8_t no_mvmt_detected(imu_msg_t* imu_values, float x_speed, float y_speed, float rotation_speed){
 #define THRESHHOLD 42
 #define GYRO_THRESHHOLD 2
-	if(imu_values->acceleration[X_AXIS] < THRESHHOLD &&
-			imu_values->acceleration[Y_AXIS] < THRESHHOLD &&
-			imu_values->acceleration[Z_AXIS] < THRESHHOLD &&
-			imu_values->gyro_rate[X_AXIS] < GYRO_THRESHHOLD &&
-			imu_values->gyro_rate[Y_AXIS] < GYRO_THRESHHOLD &&
-			imu_values->gyro_rate[Z_AXIS] < GYRO_THRESHHOLD){
+	if(x_speed < THRESHHOLD &&
+		y_speed < THRESHHOLD &&
+		rotation_speed < THRESHHOLD ){
 		return 1;
 	}else{
 		return 0;
@@ -288,6 +285,8 @@ int main(void)
     timer12_start();
     //inits the motors
     motors_init();
+    //init lookup Table sin, cos
+    initLookup();
 
     chThdCreateStatic(waThdGoalCalculations, sizeof(waThdGoalCalculations), NORMALPRIO, ThdGoalCalculations, NULL);
     //messagebus_topic_t *imu_topic = messagebus_find_topic_blocking(&bus, "/imu");
