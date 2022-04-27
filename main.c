@@ -146,52 +146,6 @@ static THD_FUNCTION(ThdObstacleDetection, arg) {
     	}
     }
 }
-/* Thread movement
-static THD_WORKING_AREA(waThdMovement, 128);
-static THD_FUNCTION(ThdMovement, arg) { // evt in main
-
-    chRegSetThreadName(__FUNCTION__);
-    (void)arg;
-
-    systime_t time;
-
-    uint8_t in_air = 0;
-    uint8_t goal_reached = 0;
-    int16_t realtive_position = 0;
-    int32_t rotation_steps = 0;
-    float distance = 0; // mm
-    float distance_steps = 0;
-
-
-#define ROTATION_TH 2
-#define ONE_TURN_STEPS 1000
-#define PI_DEG 180
-#define WHEEL_PERIM 13 //cm
-#define TURN_SPEED 800
-#define DRIVE_SPEED 1000
-    while(!in_air && !goal_reached){
-        // First turn to destination
-    	right_motor_set_pos(0);
-    	// Calculate angle in rotation of wheel in steps
-    	rotation_steps = relative_rotation / (2*PI_DEG) * WHEEL_PERIM * ONE_TURN_STEPS;
-    	right_motor_set_speed(TURN_SPEED*sign(rotation_steps));
-    	left_motor_set_speed(-TURN_SPEED*sign(rotation_steps));
-    	do{
-    		//sleep
-    	}while((abs(rotation_steps) > abs(right_motor_get_pos())));
-
-    	// Drive distance in a straight line
-    	right_motor_set_pos(0);
-    	distance_steps = distance / (WHEEL_PERIM * 10) * ONE_TURN_STEPS; // *10 as distance is in mm and perim in cm
-    	right_motor_set_speed(DRIVE_SPEED);
-    	left_motor_set_speed(DRIVE_SPEED);
-    	do{
-    		//sleep
-    	}while((abs(distance_steps) > abs(right_motor_get_pos())));
-    	// Test for obstacle warning
-    	// switch to regular behavior
-    }
-}*/
 
 uint8_t no_mvmt_detected(imu_msg_t* imu_values){
 #define THRESHHOLD 42
@@ -243,14 +197,35 @@ int main(void)
     motors_init();
     imu_start();
     proximity_start();
+    clear_leds();
+    set_body_led(0);
+    set_front_led(0);
 
+    //start calibration
+    //indication that calibration is in progress
+    set_rgb_led(LED2,RGB_MAX_INTENSITY,0,0);
+    set_rgb_led(LED4,RGB_MAX_INTENSITY,0,0);
+    set_rgb_led(LED6,RGB_MAX_INTENSITY,0,0);
+    set_rgb_led(LED8,RGB_MAX_INTENSITY,0,0);
+
+    calibrate_gyro();
+    set_rgb_led(LED2,0,RGB_MAX_INTENSITY,0);
+    calibrate_acc();
+    set_rgb_led(LED8,0,RGB_MAX_INTENSITY,0);
+    calibrate_ir();
+    set_rgb_led(LED4,0,RGB_MAX_INTENSITY,0);
+    set_rgb_led(LED6,0,RGB_MAX_INTENSITY,0);
+
+    //sleep 1 sec
+    clear_leds();
+
+    //create threads
     chThdCreateStatic(waThdGoalCalculations, sizeof(waThdGoalCalculations), NORMALPRIO, ThdGoalCalculations, NULL);
     chThdCreateStatic(waThdObstacleDetection, sizeof(waThdObstacleDetection), NORMALPRIO, ThdObstacleDetection, NULL);
     //messagebus_topic_t *imu_topic = messagebus_find_topic_blocking(&bus, "/imu");
 
     //infinite loop
     while(1){
-    	uint8_t in_air = 0;
     	uint8_t goal_reached = 0;
     	int16_t relative_rotation = 0;
     	int32_t rotation_steps = 0;
