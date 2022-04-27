@@ -11,11 +11,13 @@
 #include <motors.h>
 #include <audio/microphone.h>
 #include "sensors/proximity.h"
+#include "leds.h"
 
 #include <arm_math.h>
 
 #include <constants.h>
 #include "calculations.h"
+#include <detection.h>
 
 messagebus_t bus;
 MUTEX_DECL(bus_lock);
@@ -107,49 +109,10 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
     }
 }
 
-static THD_WORKING_AREA(waThdObstacleDetection, 128);
-static THD_FUNCTION(ThdObstacleDetection, arg) {
-
-    chRegSetThreadName(__FUNCTION__);
-    (void)arg;
-
-    systime_t time;
-
-    uint8_t object_detected = 0;
-
-    while(!object_detected){
-    	// Test for object
-    	if(get_calibrated_prox(FRONT_LEFT_IR_SENSOR) > TH && get_calibrated_prox(FRONT_RIGHT_IR_SENSOR) > TH){
-    		object_detected = 1;
-    	}
-    	// Sleep
-    }
-
-    while(object_detected){
-
-    	switch(object_detected){
-    		case 1:
-    			// Read right or left sensor maybe the two further back as well
-    			// If no sensor detects an object set object_detected to 2
-    			if(get_calibrated_prox(RIGHT_IR_SENSOR) < TH && get_calibrated_prox(RIGHT_BACK_IR_SENSOR) > TH){
-    				object_detected = 2;
-    			}
-    			break;
-    		case 2:
-    			if(get_calibrated_prox(RIGHT_IR_SENSOR) > TH){
-    				object_detected = 1;
-    			}
-    			break;	// test side sensors while turning
-    						// further algorithms to set object_detected to 0
-    		default:
-    			break;
-    	}
-    }
-}
-
 uint8_t no_mvmt_detected(imu_msg_t* imu_values){
 #define THRESHHOLD 42
 #define GYRO_THRESHHOLD 2
+	float x_speed=0, y_speed=0, rotation_speed=0; // you need to declare or pass them via struct for example
 	if(x_speed < THRESHHOLD &&
 		y_speed < THRESHHOLD &&
 		rotation_speed < THRESHHOLD ){
@@ -176,7 +139,7 @@ uint8_t in_air(uint8_t tf){
 			return in_air;
 	}
 }
-
+int32_t evade_obj_alg(void); // just temporary to build
 //------------------------------------------------------------------------
 
 int main(void)
@@ -197,7 +160,8 @@ int main(void)
     clear_leds();
     set_body_led(0);
     set_front_led(0);
-    init_lookup();
+    lookup_init();
+    obj_det_init();
 
     //start calibration
     //indication that calibration is in progress
@@ -219,7 +183,6 @@ int main(void)
 
     //create threads
     chThdCreateStatic(waThdGoalCalculations, sizeof(waThdGoalCalculations), NORMALPRIO, ThdGoalCalculations, NULL);
-    chThdCreateStatic(waThdObstacleDetection, sizeof(waThdObstacleDetection), NORMALPRIO, ThdObstacleDetection, NULL);
     //messagebus_topic_t *imu_topic = messagebus_find_topic_blocking(&bus, "/imu");
 
     //infinite loop
@@ -230,9 +193,9 @@ int main(void)
     	float distance = 0; // mm
     	float distance_steps = 0;
 
-    	while(!in_air && !goal_reached){
+    	while(!in_air(GET) && !goal_reached){
     	    // First turn to destination
-    	    right_motor_set_pos(0);
+    	    right_motor_set_pos(CLEAR);
     	    // Calculate angle in rotation of wheel in steps
     	    rotation_steps =  WHEEL_PERIM * ONE_TURN_STEPS * relative_rotation / (2*PI_DEG);
     	    right_motor_set_speed(TURN_SPEED*sign(rotation_steps));
@@ -242,18 +205,16 @@ int main(void)
     	    }while((abs(rotation_steps) > abs(right_motor_get_pos())));
 
     	    // Drive distance in a straight line
-    	    right_motor_set_pos(0);
+    	    right_motor_set_pos(CLEAR);
     	    distance_steps = distance * ONE_TURN_STEPS / (WHEEL_PERIM * 10); // *10 as distance is in mm and perim in cm
     	    right_motor_set_speed(DRIVE_SPEED);
     	    left_motor_set_speed(DRIVE_SPEED);
     	    do{
     	    	//sleep
-    	    	if(object_detection){
+    	    	if(get_object_det()){
     	    		right_motor_set_pos(evade_obj_alg());
     	    	}
     	    }while((abs(distance_steps) > abs(right_motor_get_pos())));
-    	    // Test for obstacle warning
-    	    // switch to regular behavior
     	}
     }
 }
@@ -261,7 +222,7 @@ int main(void)
 int32_t evade_obj_alg(void){
 	int32_t old_pos = right_motor_get_pos();
 	do{
-		switch(object_detection){
+		switch(get_object_det()){
 			case 0:
 				return old_pos; // definitely needs some calculations depending on the size of the object
 				break;
@@ -269,31 +230,31 @@ int32_t evade_obj_alg(void){
 				//turn left slowly
 				right_motor_set_speed(TURN_SPEED/2);
 				left_motor_set_speed(-TURN_SPEED/2);
-				while(object_detection == 1){
+				while(get_object_det() == 1){
 					// sleep
 				}
 				break;
 			case 2:
 				//drive forward slowly until sensors lose object
 				right_motor_set_speed(DRIVE_SPEED/2);
-				left_motor_set_speed(DRIVE_SPED/2);
-				while(object_detection == 2){
+				left_motor_set_speed(DRIVE_SPEED/2);
+				while(get_object_det() == 2){
 					// sleep
 				}
 				break;
 			case 3:
-				//turn right slowly until object is refound
+				//turn right slowly until object is found again
 				right_motor_set_speed(-TURN_SPEED/2);
 				left_motor_set_speed(TURN_SPEED/2);
-				while(object_detection == 3){
+				while(get_object_det() == 3){
 					// sleep
 				}
 				break;
 			default:
-				panik_handler(&"object_detection_value");
+				panic_handler("object_detection_value");
 				return 0;
 		}
-	}while(object_detection);
+	}while(get_object_det());
 	return old_pos;
 }
 
