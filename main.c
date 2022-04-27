@@ -197,6 +197,7 @@ int main(void)
     clear_leds();
     set_body_led(0);
     set_front_led(0);
+    init_lookup();
 
     //start calibration
     //indication that calibration is in progress
