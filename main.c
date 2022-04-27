@@ -208,6 +208,26 @@ uint8_t no_mvmt_detected(imu_msg_t* imu_values){
 	}
 }
 
+// sets and returns 1 if "true", 0 if "false" and returns the case if given value is anything else, i.e., invalid -> request state
+
+uint8_t in_air(uint8_t tf){
+	static uint8_t in_air = 0;
+	switch(tf){
+		case 0:
+			in_air = 0;
+			return in_air;
+			break;
+		case 1:
+			in_air = 1;
+			return in_air;
+			break;
+		default:
+			return in_air;
+	}
+}
+
+//------------------------------------------------------------------------
+
 int main(void)
 {
 
