@@ -237,7 +237,7 @@ int main(void)
     	    rotation_steps =  WHEEL_PERIM * ONE_TURN_STEPS * relative_rotation / (2*PI_DEG);
     	    right_motor_set_speed(TURN_SPEED*sign(rotation_steps));
     	    left_motor_set_speed(-TURN_SPEED*sign(rotation_steps));
-    	    do{
+    	    do{ // turn right or left
     	    	//sleep
     	    }while((abs(rotation_steps) > abs(right_motor_get_pos())));
 
@@ -248,11 +248,53 @@ int main(void)
     	    left_motor_set_speed(DRIVE_SPEED);
     	    do{
     	    	//sleep
+    	    	if(object_detection){
+    	    		right_motor_set_pos(evade_obj_alg());
+    	    	}
     	    }while((abs(distance_steps) > abs(right_motor_get_pos())));
     	    // Test for obstacle warning
     	    // switch to regular behavior
     	}
     }
+}
+
+int32_t evade_obj_alg(void){
+	int32_t old_pos = right_motor_get_pos();
+	do{
+		switch(object_detection){
+			case 0:
+				return old_pos; // definitely needs some calculations depending on the size of the object
+				break;
+			case 1:
+				//turn left slowly
+				right_motor_set_speed(TURN_SPEED/2);
+				left_motor_set_speed(-TURN_SPEED/2);
+				while(object_detection == 1){
+					// sleep
+				}
+				break;
+			case 2:
+				//drive forward slowly until sensors lose object
+				right_motor_set_speed(DRIVE_SPEED/2);
+				left_motor_set_speed(DRIVE_SPED/2);
+				while(object_detection == 2){
+					// sleep
+				}
+				break;
+			case 3:
+				//turn right slowly until object is refound
+				right_motor_set_speed(-TURN_SPEED/2);
+				left_motor_set_speed(TURN_SPEED/2);
+				while(object_detection == 3){
+					// sleep
+				}
+				break;
+			default:
+				panik_handler(&"object_detection_value");
+				return 0;
+		}
+	}while(object_detection);
+	return old_pos;
 }
 
 #define STACK_CHK_GUARD 0xe2dee396
