@@ -18,6 +18,7 @@
 #include <constants.h>
 #include "calculations.h"
 #include <detection.h>
+#include "motor.h"
 
 messagebus_t bus;
 MUTEX_DECL(bus_lock);
@@ -165,21 +166,18 @@ int main(void)
 
     //start calibration
     //indication that calibration is in progress
-    set_rgb_led(LED2,RGB_MAX_INTENSITY,0,0);
-    set_rgb_led(LED4,RGB_MAX_INTENSITY,0,0);
-    set_rgb_led(LED6,RGB_MAX_INTENSITY,0,0);
-    set_rgb_led(LED8,RGB_MAX_INTENSITY,0,0);
+    set_led(LED1, 1);
+    set_led(LED3, 1);
+    set_led(LED5, 1);
+    set_led(LED7, 1);
 
     calibrate_gyro();
-    set_rgb_led(LED2,0,RGB_MAX_INTENSITY,0);
+    set_led(LED1, 0);
     calibrate_acc();
-    set_rgb_led(LED8,0,RGB_MAX_INTENSITY,0);
+    set_led(LED3, 0);
     calibrate_ir();
-    set_rgb_led(LED4,0,RGB_MAX_INTENSITY,0);
-    set_rgb_led(LED6,0,RGB_MAX_INTENSITY,0);
-
-    //sleep 1 sec
-    clear_leds();
+    set_led(LED5, 0);
+    set_led(LED7, 0);
 
     //create threads
     chThdCreateStatic(waThdGoalCalculations, sizeof(waThdGoalCalculations), NORMALPRIO, ThdGoalCalculations, NULL);
@@ -189,80 +187,18 @@ int main(void)
     while(1){
     	static uint8_t goal_reached = 0;
     	static int16_t relative_rotation = 0;
-    	static int32_t rotation_steps = 0;
     	static float distance = 0; // mm
-    	static float distance_steps = 0;
 
     	while(!in_air(GET) && !goal_reached){
     	    // First turn to destination
-    	    right_motor_set_pos(CLEAR);
-    	    // Calculate angle in rotation of wheel in steps
-    	    rotation_steps = ONE_TURN_STEPS * relative_rotation / (2*PI_DEG);
-    	    right_motor_set_speed(TURN_SPEED*sign(rotation_steps));
-    	    left_motor_set_speed(-TURN_SPEED*sign(rotation_steps));
-    	    do{ // turn right or left
-    	    	//sleep
-    	    	chThdSleepMilliseconds(50);
-    	    }while((abs(rotation_steps) > abs(right_motor_get_pos())));
-
+    		turn_angle(relative_rotation);
     	    // Drive distance in a straight line
-    	    right_motor_set_pos(CLEAR);
-    	    distance_steps = distance * ONE_TURN_STEPS / (WHEEL_PERIM * 10); // *10 as distance is in mm and perim in cm
-    	    right_motor_set_speed(DRIVE_SPEED);
-    	    left_motor_set_speed(DRIVE_SPEED);
-    	    do{
-    	    	//sleep
-    	    	chThdSleepMilliseconds(50);
-    	    	if(get_object_det()){
-    	    		right_motor_set_pos(evade_obj_alg());
-    	    	}
-    	    }while((abs(distance_steps) > abs(right_motor_get_pos())));
-
+    	    drive_distance(distance);
     	    while(1){
-    	    	right_motor_set_speed(OFF);
-    	    	left_motor_set_speed(OFF);
+    	    	motor_stop();
     	    } // finished
     	}
     }
-}
-
-int32_t evade_obj_alg(void){
-	int32_t old_pos = right_motor_get_pos();
-	do{
-		switch(get_object_det()){
-			case 0:
-				return old_pos; // definitely needs some calculations depending on the size of the object
-				break;
-			case 1:
-				//turn left slowly
-				right_motor_set_speed(TURN_SPEED/2);
-				left_motor_set_speed(-TURN_SPEED/2);
-				while(get_object_det() == 1){
-					// sleep
-				}
-				break;
-			case 2:
-				//drive forward slowly until sensors lose object
-				right_motor_set_speed(DRIVE_SPEED/2);
-				left_motor_set_speed(DRIVE_SPEED/2);
-				while(get_object_det() == 2){
-					// sleep
-				}
-				break;
-			case 3:
-				//turn right slowly until object is found again
-				right_motor_set_speed(-TURN_SPEED/2);
-				left_motor_set_speed(TURN_SPEED/2);
-				while(get_object_det() == 3){
-					// sleep
-				}
-				break;
-			default:
-				panic_handler("object_detection_value");
-				return 0;
-		}
-	}while(get_object_det());
-	return old_pos;
 }
 
 #define STACK_CHK_GUARD 0xe2dee396

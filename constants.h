@@ -1,13 +1,6 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
-// mvmt
-#define ROTATION_TH 2
-#define ONE_TURN_STEPS 1000
-#define WHEEL_PERIM 13 //cm
-#define TURN_SPEED 800
-#define DRIVE_SPEED 1000
-
 // calc gyro
 #define RES_250DPS 250
 #define MAX_INT16 32768
