@@ -21,11 +21,20 @@
 #define WHEEL_PERIM 13 //cm
 #define TURN_SPEED 700
 #define DRIVE_SPEED 900
+#define FORWARDS 1
+#define BACKWARDS -1
+
+static float diff_x = 0, diff_y = 0; // difference due to object in steps
 
 /******************************Private Functions********************************/
 int32_t evade_obj_alg(void){
 	static int32_t old_pos = 0;
+	static int32_t diff = 0;
+	static int16_t alpha = 0;
+	static float steps = 0; // for sin calculations D:
+	static int8_t sign_of_diff = 0;
 	old_pos = right_motor_get_pos();
+	motors_reset_pos();
 	do{
 		switch(get_object_det()){
 			case 0:
@@ -38,6 +47,9 @@ int32_t evade_obj_alg(void){
 				while(get_object_det() == 1){
 					chThdSleepMilliseconds(50);
 				}
+				steps = right_motor_get_pos(); // saves step count
+				diff = right_motor_get_pos() - left_motor_get_pos(); // calculates difference between right and left wheel
+				alpha = diff * (PI_DEG / 2) / (ONE_TURN_STEPS / 4);  // -> angle turned
 				break;
 			case 2:
 				//drive forward slowly until sensors lose object
@@ -46,20 +58,35 @@ int32_t evade_obj_alg(void){
 				while(get_object_det() == 2){
 					chThdSleepMilliseconds(50);
 				}
+				steps = right_motor_get_pos() - steps; // subtract old count to get the distance
+				diff_x += get_sin(alpha) * steps; // calculate difference in x
+				diff_y += get_cos(alpha) * steps; // calculate difference in y
 				break;
 			case 3:
 				//turn right slowly until object is found again
 				right_motor_set_speed(-TURN_SPEED/2);
 				left_motor_set_speed(TURN_SPEED/2);
+				sign_of_diff = sign(diff);
 				while(get_object_det() == 3){
 					chThdSleepMilliseconds(50);
+					diff = right_motor_get_pos() - left_motor_get_pos();
+					if(sign_of_diff != sign(diff)){ // robot turned further right than initially -> passed simple object
+						reset_obj_det();
+					}
 				}
+				steps = right_motor_get_pos(); // saves step count
+				diff = right_motor_get_pos() - left_motor_get_pos(); // calculates difference between right and left wheel
+				alpha = diff * (PI_DEG / 2) / (ONE_TURN_STEPS / 4);  // -> angle turned
 				break;
 			default:
 				panic_handler("object_detection_value");
 				return 0;
 		}
 	}while(get_object_det());
+	steps = right_motor_get_pos() - steps; // subtract old count to get the distance
+	diff_x += get_sin(alpha) * steps; // calculate difference in x
+	diff_y += get_cos(alpha) * steps; // calculate difference in y
+
 	return old_pos;
 }
 
@@ -68,7 +95,7 @@ int32_t evade_obj_alg(void){
 void turn_angle(int16_t angle){
 	static int32_t angle_steps = 0;
 	// reset position
-	right_motor_set_pos(CLEAR);
+	motors_reset_pos();
 
 	// Calculate angle in rotation of wheel in steps
 	angle_steps = ONE_TURN_STEPS * angle / (2*PI_DEG);

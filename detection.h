@@ -13,6 +13,6 @@
 
 void obj_det_init(void);
 uint8_t get_object_det(void);
-
+void reset_obj_det(void);
 
 #endif /* DETECTION_H */
