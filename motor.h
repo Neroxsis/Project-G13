@@ -12,7 +12,8 @@
 
 void turn_angle(int16_t angle);
 void drive_distance(float distance);
+void drive_steps(int32_t steps, int8_t direction);
 void motor_stop(void);
-
+void motors_reset_pos(void);
 
 #endif /* MOTOR_C */

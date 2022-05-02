@@ -84,20 +84,54 @@ void turn_angle(int16_t angle){
 
 void drive_distance(float distance){
 	static float distance_steps = 0;
-	// reset position
-	right_motor_set_pos(CLEAR);
 
 	// calculate distance in steps
 	distance_steps = distance * ONE_TURN_STEPS / (WHEEL_PERIM * 10); // *10 as distance is in mm and perim in cm
-	right_motor_set_speed(DRIVE_SPEED);
-	left_motor_set_speed(DRIVE_SPEED);
 
+	drive_steps(distance_steps, FORWARDS);
+
+	// if an object was in the way we have a difference in x and y
+	// which needs to be corrected
+	if(diff_y != 0){
+		// saved opposite to coord-system
+		// +y means the robot is too far and needs to drive back a bit
+		drive_steps((int)diff_y, -signf(diff_y));
+	}
+
+	if(diff_x != 0){
+		// first, turn 90° degree to the right
+		turn_angle(90);
+		// drive forwards or backwards depending on the sign
+		// +x means the robot is too low and because
+		// of the +90° turn needs to drive forward
+		drive_steps((int)diff_x, signf(diff_x));
+	}
+}
+
+//------------------------------------------------------------------
+
+// direction positive means forwards, negative means backwards,
+// 0 will be taken as forwards
+void drive_steps(int32_t steps, int8_t direction){
+	// correct a 0 in direction
+	if(direction == 0){
+		direction = 1;
+	}
+
+	// reset position
+	motors_reset_pos();
+
+	// set speed + forwards or backwards
+	right_motor_set_speed(DRIVE_SPEED * signs(direction));
+	left_motor_set_speed(DRIVE_SPEED * signs(direction));
+
+	// wait and check every 50 milliseconds if goal is reached or object is detected
 	do{
 		chThdSleepMilliseconds(50);
 	    if(get_object_det()){
 	    	right_motor_set_pos(evade_obj_alg());
 	    }
-	}while((abs(distance_steps) > abs(right_motor_get_pos())));
+	}while((abs(steps) > abs(right_motor_get_pos())));
 }
 
 //-------------------------------------------------------------------
@@ -105,4 +139,9 @@ void drive_distance(float distance){
 void motor_stop(void){
 	right_motor_set_speed(0);
 	left_motor_set_speed(0);
+}
+
+void motors_reset_pos(void){
+	right_motor_set_pos(CLEAR);
+	left_motor_set_pos(CLEAR);
 }
