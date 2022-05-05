@@ -45,10 +45,14 @@ int32_t evade_obj_alg(void){
 				right_motor_set_speed(TURN_SPEED/2);
 				left_motor_set_speed(-TURN_SPEED/2);
 				while(get_object_det() == 1){
-					chThdSleepMilliseconds(50);
+					chThdSleepMilliseconds(10);
+					diff = right_motor_get_pos() - left_motor_get_pos(); // calculates difference between right and left wheel
+					if(diff > 1000){
+						false_alarm(diff);
+						break;
+					}
 				}
 				steps = right_motor_get_pos(); // saves step count
-				diff = right_motor_get_pos() - left_motor_get_pos(); // calculates difference between right and left wheel
 				alpha = diff * (PI_DEG / 2) / (ONE_TURN_STEPS / 4);  // -> angle turned
 				break;
 			case 2:
@@ -56,7 +60,7 @@ int32_t evade_obj_alg(void){
 				right_motor_set_speed(DRIVE_SPEED/2);
 				left_motor_set_speed(DRIVE_SPEED/2);
 				while(get_object_det() == 2){
-					chThdSleepMilliseconds(50);
+					chThdSleepMilliseconds(10);
 				}
 				steps = right_motor_get_pos() - steps; // subtract old count to get the distance
 				diff_x += get_sin(alpha) * steps; // calculate difference in x
@@ -87,6 +91,8 @@ int32_t evade_obj_alg(void){
 	diff_x += get_sin(alpha) * steps; // calculate difference in x
 	diff_y += get_cos(alpha) * steps; // calculate difference in y
 
+	right_motor_set_speed(DRIVE_SPEED);
+	left_motor_set_speed(DRIVE_SPEED);
 	return old_pos;
 }
 

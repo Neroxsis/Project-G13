@@ -9,6 +9,7 @@
 #define MOTOR_C
 
 #include <hal.h>
+#include "ch.h"
 
 void turn_angle(int16_t angle);
 void drive_distance(float distance);

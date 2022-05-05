@@ -10,12 +10,13 @@
 #define PI_DEG 180
 
 // prox
-#define FRONT_LEFT_IR_SENSOR 5
 #define FRONT_RIGHT_IR_SENSOR 0
+#define RIGHT_FRONT_IR_SENSOR 1
 #define RIGHT_IR_SENSOR 2
 #define RIGHT_BACK_IR_SENSOR 3
-#define RIGHT_FRONT_IR_SENSOR 1
-#define TH 42
+#define FRONT_LEFT_IR_SENSOR 7
+#define IR_THRESHHOLD 20
+#define FALSE_ALARM 1000
 
 // no magic numbers
 #define CLEAR 0
