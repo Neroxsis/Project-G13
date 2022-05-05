@@ -9,8 +9,8 @@
 #define DRIVE_SPEED 1000
 
 // calc gyro
-#define RES_250DPS 250
-#define MAX_INT16 32768
+#define RES_250DPS 250.0f		//f is a float
+#define MAX_INT16 32768.0f
 #define GYRO_RAW2DPS        (RES_250DPS / MAX_INT16)   //250DPS (degrees per second) scale for int16 raw value
 
 // angle

@@ -5,17 +5,17 @@
 #include <constants.h>
 #include <calculations.h>
 
-static float sine[91]; // from 0 to 90 degree
+static float sine[91]; // from 0 to 90 degrees (including 0° and 90°)
 static float cosine[91];
 
 // filling out the first quadrant for each degree of sine and cosine
+// the sin, cos function from the math.h library use radian while we use degrees !!
 void lookup_init(void){
 	for(uint8_t i=0; i<91; i++){
-		sine[i] = sin(i); // from math.h
-		cosine[i] = cos(i);
+		sine[i] = sin(i*M_PI/180); 	// from math.h
+		cosine[i] = cos(i*M_PI/180);
 	}
 }
-
 
 //------------------------------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ void lookup_init(void){
 // returns for all values a cosine of the value
 float get_cos(int16_t angle){
 	while(angle >= 360) { angle -= 360; }
-	while(angle <= 360) { angle += 360; }
+	while(angle <= -360) { angle += 360; }
 	// angle between without -360 to 360
 
 	if(angle >= 0){
@@ -57,7 +57,7 @@ float get_cos(int16_t angle){
 // returns for all values a sine of the value
 float get_sin(int16_t angle){
 	while(angle >= 360) { angle -= 360; }
-	while(angle <= 360) { angle += 360; }
+	while(angle <= -360) { angle += 360; }
 	// angle between without -360 to 360
 	if(angle >= 0){
 		if(angle <= 90){ // Quadrant I
@@ -87,7 +87,7 @@ float get_sin(int16_t angle){
 //-----------------------------------------------------------------------------------------
 
 
-// calculates rotation acceleration from imu_msg_t and returns degree
+// calculates rotation acceleration from imu_msg_t and returns degrees/s
 int16_t get_gyro_deg(imu_msg_t *imu_values, uint8_t axis){
 	int16_t gyro = 0;
 	switch(axis){
