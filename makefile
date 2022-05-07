@@ -13,6 +13,7 @@ CSRC += ./main.c \
 		./calculations.c \
 		./detection.c \
 		./motor.c \
+		./direction.c \
 
 #Header folders to include
 INCDIR += ./constants.h \

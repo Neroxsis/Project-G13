@@ -21,6 +21,9 @@
 // no magic numbers
 #define CLEAR 0
 #define OFF 0
-#define GET 5
+
+// imu
+#define INCLINE_TH -0.5f
+#define DIVIDE_BYZ 0.1f
 
 #endif /* CONSTANTS_H */

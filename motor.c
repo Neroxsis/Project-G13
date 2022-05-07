@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <arm_math.h>
 #include <constants.h>
 #include <calculations.h>
@@ -15,12 +16,12 @@
 #include <detection.h>
 
 #include "motors.h"
+#include <chprintf.h>
 
-
-#define ONE_TURN_STEPS 1000
+#define ONE_TURN_STEPS 1200
 #define WHEEL_PERIM 13 //cm
-#define TURN_SPEED 700
-#define DRIVE_SPEED 900
+#define TURN_SPEED 300
+#define DRIVE_SPEED 400
 #define FORWARDS 1
 #define BACKWARDS -1
 
@@ -47,13 +48,13 @@ int32_t evade_obj_alg(void){
 				while(get_object_det() == 1){
 					chThdSleepMilliseconds(10);
 					diff = right_motor_get_pos() - left_motor_get_pos(); // calculates difference between right and left wheel
-					if(diff > 1000){
+					if(diff > ONE_TURN_STEPS){
 						false_alarm(diff);
 						break;
 					}
 				}
 				steps = right_motor_get_pos(); // saves step count
-				alpha = diff * (PI_DEG / 2) / (ONE_TURN_STEPS / 4);  // -> angle turned
+				alpha = (diff / 2) * (PI_DEG / 2) / (ONE_TURN_STEPS / 4);  // -> angle turned
 				break;
 			case 2:
 				//drive forward slowly until sensors lose object
@@ -72,15 +73,16 @@ int32_t evade_obj_alg(void){
 				left_motor_set_speed(TURN_SPEED/2);
 				sign_of_diff = sign(diff);
 				while(get_object_det() == 3){
-					chThdSleepMilliseconds(50);
+					chThdSleepMilliseconds(10);
 					diff = right_motor_get_pos() - left_motor_get_pos();
+		        	chprintf((BaseSequentialStream *)&SD3, "diff = %d \r\n other_sign = %d \r\n\n", diff, sign_of_diff);
 					if(sign_of_diff != sign(diff)){ // robot turned further right than initially -> passed simple object
 						reset_obj_det();
 					}
 				}
 				steps = right_motor_get_pos(); // saves step count
 				diff = right_motor_get_pos() - left_motor_get_pos(); // calculates difference between right and left wheel
-				alpha = diff * (PI_DEG / 2) / (ONE_TURN_STEPS / 4);  // -> angle turned
+				alpha = (diff / 2) * (PI_DEG / 2) / (ONE_TURN_STEPS / 4);  // -> angle turned
 				break;
 			default:
 				panic_handler("object_detection_value");
