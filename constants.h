@@ -3,7 +3,7 @@
 
 // mvmt
 #define ROTATION_TH 2
-#define ONE_TURN_STEPS 1000
+#define ONE_TURN_STEPS 100
 #define WHEEL_PERIM 13 //cm
 #define TURN_SPEED 800
 #define DRIVE_SPEED 1000
