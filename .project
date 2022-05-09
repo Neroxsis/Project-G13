@@ -26,6 +26,11 @@
 	</natures>
 	<linkedResources>
 		<link>
+			<name>ST</name>
+			<type>2</type>
+			<location>C:/Users/Simona/OneDrive/Dokumente/EPFL/BA6_Robotique/ST</location>
+		</link>
+		<link>
 			<name>e-puck2_main-processor</name>
 			<type>2</type>
 			<locationURI>copy_PARENT/lib/e-puck2_main-processor</locationURI>

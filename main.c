@@ -22,6 +22,8 @@
 #include <math.h>
 
 
+
+
 messagebus_t bus;
 MUTEX_DECL(bus_lock);
 CONDVAR_DECL(bus_condvar);
@@ -54,10 +56,10 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
 
-    messagebus_topic_t *rotation_topic = messagebus_find_topic_blocking(&bus, "/rotation");
+    //messagebus_topic_t *rotation_topic = messagebus_find_topic_blocking(&bus, "/rotation");
     //int16_t relative_rotation = 0;  //this doesn't work... unknown type name "roatation"
 
-    messagebus_topic_wait(rotation_topic, &relative_rotation, sizeof(relative_rotation));
+    //messagebus_topic_wait(rotation_topic, &relative_rotation, sizeof(relative_rotation));
 
     systime_t time;
     imu_msg_t imu_values;
@@ -70,7 +72,7 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
     float x_position = 0;
     float y_position = 0;
 
-   // int16_t relative_rotation = 0;
+    int16_t relative_rotation = 0;
     float  rotation_speed =0;
     int16_t theta = 0; 		// theta = arctan(y/x) to calculate angle_to_goal
 
@@ -89,6 +91,12 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 
 
     uint8_t in_air = 0;
+
+    int8_t order[] = {0,0,0};
+    order[0]=1;
+    int16_t distance = 0;
+
+
 
     while(!in_air){
     	if(imu_values.acceleration[Z_AXIS] > ACTIVATION_TH){
@@ -119,7 +127,7 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
     	relative_rotation += get_gyro_deg(&imu_values, Z_AXIS) * period_t * CORRECTION_ROTATION;
     	chprintf((BaseSequentialStream *)&SD3, "%relative_rotation, Z =%d \r\n\n", relative_rotation);
 
-    } // temporary to end while loop
+
 
 
 
@@ -129,86 +137,111 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 
 
  // ----------------------------------------------------------------------------------------------------------------
-    	/*
+
+    chprintf((BaseSequentialStream *)&SD3, "____________________________________________ \r\n\n");
+
+        	//change so that they are both the same
+//        	float period_t = 0.1; //10 ms
+//        	float period = 0.1;
+    		//int16_t distance =0;
 
 
-		#define X_ACC_THRESHOLD 0.8  // NOT yet calibrated !!
-		#define Y_ACC_THRESHOLD 0.8  // NOT yet calibrated !!
-		#define X_SPEED_THRESHOLD 0.08  // NOT yet calibrated !!
-		#define Y_SPEED_THRESHOLD 0.08  // NOT yet calibrated !!
+        	// get angle from IMU gyroscope
+        	// get_gyro_deg gives you deg/s -> we need to multiply it by a period to get the actual angle in deg
+        	chprintf((BaseSequentialStream *)&SD3, "%get_gyro_deg, Z =%d \r\n\n", get_gyro_deg(&imu_values, Z_AXIS));
+        	// calculate angle
+        	relative_rotation += get_gyro_deg(&imu_values, Z_AXIS) * period_t;
+        	chprintf((BaseSequentialStream *)&SD3, "%relative_rotation, Z =%d \r\n\n", relative_rotation);
 
 
-    	chprintf((BaseSequentialStream *)&SD3, "Calculate speed \r\n\n");
 
-		chprintf((BaseSequentialStream *)&SD3, " x_acc =%.2f, y_acc =%.2f \r\n\n", imu_values.acceleration[X_AXIS], imu_values.acceleration[Y_AXIS]);
-
-		if (fabs(imu_values.acceleration[X_AXIS]) >= X_ACC_THRESHOLD && fabs(imu_values.acceleration[Y_AXIS]) >= Y_ACC_THRESHOLD){
-			x_speed += period * (imu_values.acceleration[X_AXIS] * get_cos(relative_rotation) - imu_values.acceleration[Y_AXIS] * get_sin(relative_rotation));
-			y_speed += period * (imu_values.acceleration[X_AXIS] * get_sin(relative_rotation) + imu_values.acceleration[Y_AXIS] * get_cos(relative_rotation));
-		}
+    		#define X_ACC_THRESHOLD 0.08  // NOT yet calibrated !!
+    		#define Y_ACC_THRESHOLD 0.08  // NOT yet calibrated !!
+    		#define X_SPEED_THRESHOLD 0.08  // NOT yet calibrated !!
+    		#define Y_SPEED_THRESHOLD 0.08  // NOT yet calibrated !!
 
 
-		// also calculate rotation speed !!!
+        	chprintf((BaseSequentialStream *)&SD3, "Calculate speed \r\n\n");
 
-		chprintf((BaseSequentialStream *)&SD3, " x_speed  =%.2f \r\n\n", x_speed);
-    	chprintf((BaseSequentialStream *)&SD3, " y_speed  =%.2f \r\n\n", y_speed);
+    		chprintf((BaseSequentialStream *)&SD3, " x_acc =%.2f, y_acc =%.2f \r\n\n", imu_values.acceleration[X_AXIS], imu_values.acceleration[Y_AXIS]);
 
-
-    	// PROBLEM: Speed doesn't go back to 0 even if acc. goes back to 0
-
-
-    	// sets speed to 0 if the robot doesn't move anymore
-    		if (fabs(x_speed)<=X_SPEED_THRESHOLD && fabs(y_speed) <= Y_SPEED_THRESHOLD){
-    			counter++;
+    		if (fabs(imu_values.acceleration[X_AXIS]) >= X_ACC_THRESHOLD && fabs(imu_values.acceleration[Y_AXIS]) >= Y_ACC_THRESHOLD){
+    			x_speed += period * (imu_values.acceleration[X_AXIS] * get_cos(relative_rotation) - imu_values.acceleration[Y_AXIS] * get_sin(relative_rotation));
+    			y_speed += period * (imu_values.acceleration[X_AXIS] * get_sin(relative_rotation) + imu_values.acceleration[Y_AXIS] * get_cos(relative_rotation));
     		}
 
-    		if (counter==10){
-    			x_speed=0;
-    			y_speed=0;
-    			counter=0;
-    			chprintf((BaseSequentialStream *)&SD3, " reset speeds to 0 \r\n\n");
-    		}
-    		chprintf((BaseSequentialStream *)&SD3, " counter %d \r\n\n", counter);
+
+    		chprintf((BaseSequentialStream *)&SD3, " x_speed  =%.2f \r\n\n", x_speed);
+        	chprintf((BaseSequentialStream *)&SD3, " y_speed  =%.2f \r\n\n", y_speed);
+
+
+    // --------------------------------------------------------------------------
+
+        	if (!in_air){
+        		x_speed=0;
+        		y_speed=0;
+        		chprintf((BaseSequentialStream *)&SD3, "set speeds to 0");
+        	}
+
+    // --------------------------------------------------------------------------
+
+        	// multiply by corrective factor of 100
+        	x_position += period * x_speed*100;
+        	y_position += period * y_speed*100;
+
+        	chprintf((BaseSequentialStream *)&SD3, " x_position=%.2f y_position=%.2f\r\n\n",  x_position, y_position);
+
+
+        	distance = sqrt(x_position*x_position + y_position*y_position);
+        	chprintf((BaseSequentialStream *)&SD3, " distance=%.2f \r\n\n", distance);
+
+
+    // -------------------------------------------------------------------------
+
+    //check if robot is on the table or in the air
+    		#define Z_ACC_THRESHOLD 0.08
+    		#define GRAVITY 9.81
+
+
+        	if (fabs(imu_values.acceleration[Z_AXIS]+GRAVITY) <= Z_ACC_THRESHOLD){
+        		in_air = 0;
+
+        		// check if robot is still on point A or has already been placed on point B
+        		if (order[1] = 1){
+        			order[2] = 1; 	// if robot was in the air before, it's now on point B
+        			chprintf((BaseSequentialStream *)&SD3, " robot order[2]=0 \r\n\n");
+        		} else {
+        			order[2] = 0;	// robot wasn't in the air before, it's still on point A
+        		}
+
+        	} else {
+        		in_air = 1;
+        		// robot is in the air
+        		order[1] = 1;
+        		chprintf((BaseSequentialStream *)&SD3, " robot in air \r\n\n");
+        	}
 
 
 
-    	chprintf((BaseSequentialStream *)&SD3, "Calculate distance \r\n\n");
-    	// calculate distance
-
-    	if (fabs(x_speed) >= X_SPEED_THRESHOLD && fabs(y_speed) >= Y_SPEED_THRESHOLD){
-    		x_position += period * x_speed;
-    		y_position += period * y_speed;
-    	}
-
-
-    	chprintf((BaseSequentialStream *)&SD3, " x_position=%.2f y_position=%.2f\r\n\n",  x_position, y_position);
-
-
-    	no_mvmt_detected( x_speed,  y_speed,  rotation_speed);
-    	chprintf((BaseSequentialStream *)&SD3, "no mvmt detected %d \r\n\n", no_mvmt_detected( x_speed,  y_speed,  rotation_speed));
+        	// sends in_air to thread
+        	//messagebus_topic_publish(in_air_topic, &in_air, sizeof(in_air));
 
 
 
-    	// test if epuck still in air
-    	if(no_mvmt_detected(x_speed, y_speed, rotation_speed)){
-    		no_mvmt_counter++;
-    		if(no_mvmt_counter > WAIT_TIME){
-    			in_air = 0;  // ???
-    		}
-    	}else{
-    		no_mvmt_counter = 0;
-    	}
+        	chprintf((BaseSequentialStream *)&SD3, " z_acc  =%.2f \r\n\n", imu_values.acceleration[Z_AXIS]+GRAVITY);
+        	chprintf((BaseSequentialStream *)&SD3, " in_air  =%d \r\n\n", in_air);
 
 
-    	 chThdSleepMilliseconds(10);  //maybe we have to change the time ....; in while loop
-    }
+        	chprintf((BaseSequentialStream *)&SD3, " order start =%d \r\n\n", order[0]);
+        	chprintf((BaseSequentialStream *)&SD3, " order in air =%d \r\n\n", order[1]);
+        	chprintf((BaseSequentialStream *)&SD3, " order end =%d \r\n\n", order[2]);
 
 
-*/
+
     // ----------------------------------------------------------------------------------------------------------------
 
 
-
+    } // temporary to end while loop
 
 
     chThdSleepMilliseconds(10); //prob. remove later
@@ -275,14 +308,15 @@ int main(void)
     imu_msg_t imu_values;
 
 
+
     int16_t relative_rotation = 0;
 
     // create messgagebus to publish the value of relative_rotation
-    messagebus_topic_t rotation_topic;
-    MUTEX_DECL(rotation_topic_lock);
-    CONDVAR_DECL(rotation_topic_condvar);
-    messagebus_topic_init(&rotation_topic, &rotation_topic_lock, &rotation_topic_condvar, &relative_rotation, sizeof(relative_rotation));
-    messagebus_advertise_topic(&bus, &rotation_topic, "/rotation");
+//    messagebus_topic_t rotation_topic;
+//    MUTEX_DECL(rotation_topic_lock);
+//    CONDVAR_DECL(rotation_topic_condvar);
+//    messagebus_topic_init(&rotation_topic, &rotation_topic_lock, &rotation_topic_condvar, &relative_rotation, sizeof(relative_rotation));
+//    messagebus_advertise_topic(&bus, &rotation_topic, "/rotation");
 
 
 // change initial_state
@@ -327,7 +361,7 @@ int main(void)
     	chprintf((BaseSequentialStream *)&SD3, "should start moving soon \r\n\n");
 
     	uint8_t goal_reached = 0;
-    	int16_t relative_rotation = 0;  // in degrees
+    	//int16_t relative_rotation = 0;  // in degrees
     	int32_t rotation_steps = 0;
     	float distance = 0; // mm
     	float distance_steps = 0;
@@ -368,7 +402,7 @@ int main(void)
     	//}  //from while(!in_air)
 
 
-    	chThdSleepMilliseconds(2000);
+    	chThdSleepMilliseconds(10);
 
 
    // } // parenthesis for while loop
