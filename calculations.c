@@ -50,7 +50,6 @@ float get_cos(int16_t angle){
 	return 0;
 }
 
-
 //-------------------------------------------------------------------------------------------
 
 
@@ -87,7 +86,7 @@ float get_sin(int16_t angle){
 //-----------------------------------------------------------------------------------------
 
 
-// calculates rotation acceleration from imu_msg_t and returns degrees/s
+// calculates rotation acceleration from imu_msg_t and returns degree
 int16_t get_gyro_deg(imu_msg_t *imu_values, uint8_t axis){
 	int16_t gyro = 0;
 	switch(axis){
@@ -112,6 +111,36 @@ int16_t get_gyro_deg(imu_msg_t *imu_values, uint8_t axis){
 
 // returns 1 if the value is positive, -1 if negative and 0 if zero
 int8_t sign(int32_t nb){
+	if(nb < 0){
+		return -1;
+	}else if(nb > 0){
+		return 1;
+	}else{
+		return 0;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------
+
+
+// sign for floating point numbers
+int8_t signf(float nb){
+	if(nb < 0){
+		return -1;
+	}else if(nb > 0){
+		return 1;
+	}else{
+		return 0;
+	}
+}
+
+
+//-------------------------------------------------------------------------------------------
+
+
+// sign for short integers
+int8_t signs(int8_t nb){
 	if(nb < 0){
 		return -1;
 	}else if(nb > 0){
