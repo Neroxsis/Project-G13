@@ -84,10 +84,10 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 	} else {
 		in_air = TRUE;
 	}
-	chprintf((BaseSequentialStream *)&SD3, " z_acc  =%.2f \r\n\n", imu_values.acceleration[Z_AXIS]+GRAVITY);
-	chprintf((BaseSequentialStream *)&SD3, " in_air  =%d \r\n\n", in_air);
+//	chprintf((BaseSequentialStream *)&SD3, " z_acc  =%.2f \r\n\n", imu_values.acceleration[Z_AXIS]+GRAVITY);
+//	chprintf((BaseSequentialStream *)&SD3, " in_air  =%d \r\n\n", in_air);
 
-//  !!!  it prints those 2 lines only twice ... WEIRD
+ // !!!  it prints those 2 lines only twice ... WEIRD
 
 //  !!! only enters the while loop once
     	while(1){ //while(in_air){

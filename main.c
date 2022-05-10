@@ -116,6 +116,7 @@ int main(void)
     //infinite loop
     while(1){
 
+    chprintf((BaseSequentialStream *)&SD3, " in_air = %d \r\n\n", get_in_air());
 
 	set_body_led(1);
 
@@ -124,63 +125,63 @@ int main(void)
 
 
 // --------------------------------------------------------------
-//    	chprintf((BaseSequentialStream *)&SD3, "____________________________________________ \r\n\n");
-//
+    	chprintf((BaseSequentialStream *)&SD3, "____________________________________________ \r\n\n");
+
     	//updates imu values
-    	//messagebus_topic_wait(imu_topic, &imu_values, sizeof(imu_values));
+    	messagebus_topic_wait(imu_topic, &imu_values, sizeof(imu_values));
 
-//    	//change so that they are both the same
-//    	float period_t = 0.1; //10 ms
-//    	float period = 0.1;
-//
-//    	// get angle from IMU gyroscope
-//    	// get_gyro_deg gives you deg/s -> we need to multiply it by a period to get the actual angle in deg
-//    	chprintf((BaseSequentialStream *)&SD3, "%get_gyro_deg, Z =%d \r\n\n", get_gyro_deg(&imu_values, Z_AXIS));
-//    	// calculate angle
-//    	relative_rotation += get_gyro_deg(&imu_values, Z_AXIS) * period_t;
-//    	chprintf((BaseSequentialStream *)&SD3, "%relative_rotation, Z =%d \r\n\n", relative_rotation);
+    	//change so that they are both the same
+    	float period_t = 0.1; //10 ms
+    	float period = 0.1;
 
-
-
-//		#define X_ACC_THRESHOLD 0.08  // NOT yet calibrated !!
-//		#define Y_ACC_THRESHOLD 0.08  // NOT yet calibrated !!
-//		#define X_SPEED_THRESHOLD 0.08  // NOT yet calibrated !!
-//		#define Y_SPEED_THRESHOLD 0.08  // NOT yet calibrated !!
-//
-//
-//    	chprintf((BaseSequentialStream *)&SD3, "Calculate speed \r\n\n");
-//
-//		chprintf((BaseSequentialStream *)&SD3, " x_acc =%.2f, y_acc =%.2f \r\n\n", imu_values.acceleration[X_AXIS], imu_values.acceleration[Y_AXIS]);
-//
-//		if (fabs(imu_values.acceleration[X_AXIS]) >= X_ACC_THRESHOLD && fabs(imu_values.acceleration[Y_AXIS]) >= Y_ACC_THRESHOLD){
-//			x_speed += period * (imu_values.acceleration[X_AXIS] * get_cos(relative_rotation) - imu_values.acceleration[Y_AXIS] * get_sin(relative_rotation));
-//			y_speed += period * (imu_values.acceleration[X_AXIS] * get_sin(relative_rotation) + imu_values.acceleration[Y_AXIS] * get_cos(relative_rotation));
-//		}
-//
-//
-//		chprintf((BaseSequentialStream *)&SD3, " x_speed  =%.2f \r\n\n", x_speed);
-//    	chprintf((BaseSequentialStream *)&SD3, " y_speed  =%.2f \r\n\n", y_speed);
+    	// get angle from IMU gyroscope
+    	// get_gyro_deg gives you deg/s -> we need to multiply it by a period to get the actual angle in deg
+    	chprintf((BaseSequentialStream *)&SD3, "%get_gyro_deg, Z =%d \r\n\n", get_gyro_deg(&imu_values, Z_AXIS));
+    	// calculate angle
+    	relative_rotation += get_gyro_deg(&imu_values, Z_AXIS) * period_t;
+    	chprintf((BaseSequentialStream *)&SD3, "%relative_rotation, Z =%d \r\n\n", relative_rotation);
 
 
-// --------------------------------------------------------------------------
 
-//    	if (!in_air){
-//    		x_speed=0;
-//    		y_speed=0;
-//    		//chprintf((BaseSequentialStream *)&SD3, "set speeds to 0");
-//    	}
+		#define X_ACC_THRESHOLD 0.08  // NOT yet calibrated !!
+		#define Y_ACC_THRESHOLD 0.08  // NOT yet calibrated !!
+		#define X_SPEED_THRESHOLD 0.08  // NOT yet calibrated !!
+		#define Y_SPEED_THRESHOLD 0.08  // NOT yet calibrated !!
+
+
+    	chprintf((BaseSequentialStream *)&SD3, "Calculate speed \r\n\n");
+
+		chprintf((BaseSequentialStream *)&SD3, " x_acc =%.2f, y_acc =%.2f \r\n\n", imu_values.acceleration[X_AXIS], imu_values.acceleration[Y_AXIS]);
+
+		if (fabs(imu_values.acceleration[X_AXIS]) >= X_ACC_THRESHOLD && fabs(imu_values.acceleration[Y_AXIS]) >= Y_ACC_THRESHOLD){
+			x_speed += period * (imu_values.acceleration[X_AXIS] * get_cos(relative_rotation) - imu_values.acceleration[Y_AXIS] * get_sin(relative_rotation));
+			y_speed += period * (imu_values.acceleration[X_AXIS] * get_sin(relative_rotation) + imu_values.acceleration[Y_AXIS] * get_cos(relative_rotation));
+		}
+
+
+		chprintf((BaseSequentialStream *)&SD3, " x_speed  =%.2f \r\n\n", x_speed);
+    	chprintf((BaseSequentialStream *)&SD3, " y_speed  =%.2f \r\n\n", y_speed);
+
 
 // --------------------------------------------------------------------------
 
-//    	// multiply by corrective factor of 100
-//    	x_position += period * x_speed*100;
-//    	y_position += period * y_speed*100;
-//
-//    	chprintf((BaseSequentialStream *)&SD3, " x_position=%.2f y_position=%.2f\r\n\n",  x_position, y_position);
-//
-//
-//    	distance = sqrt(x_position*x_position + y_position*y_position);
-//    	chprintf((BaseSequentialStream *)&SD3, " distance=%.2f \r\n\n", distance);
+    	if (!in_air){
+    		x_speed=0;
+    		y_speed=0;
+    		//chprintf((BaseSequentialStream *)&SD3, "set speeds to 0");
+    	}
+
+// --------------------------------------------------------------------------
+
+    	// multiply by corrective factor of 100
+    	x_position += period * x_speed*100;
+    	y_position += period * y_speed*100;
+
+    	chprintf((BaseSequentialStream *)&SD3, " x_position=%.2f y_position=%.2f\r\n\n",  x_position, y_position);
+
+
+    	distance = sqrt(x_position*x_position + y_position*y_position);
+    	chprintf((BaseSequentialStream *)&SD3, " distance=%.2f \r\n\n", distance);
 
 
 // ------------------------------------------------------------------------
@@ -190,16 +191,16 @@ int main(void)
 
 
 
-		// determines state of robot
-//		if(get_in_air()){
-//			robot = displacement;
-//		}
-//		if(!get_in_air() && robot == pointA){
-//			robot = pointA;
-//		}
-//		if(!get_in_air() && robot == displacement){
-//			robot = pointB;
-//		}
+		//determines state of robot
+		if(get_in_air()){
+			robot = displacement;
+		}
+		if(!get_in_air() && robot == pointA){
+			robot = pointA;
+		}
+		if(!get_in_air() && robot == displacement){
+			robot = pointB;
+		}
 
 
 // ----------------------------------------------------------------------------
