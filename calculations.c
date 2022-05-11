@@ -11,8 +11,8 @@ static float cosine[91];
 // filling out the first quadrant for each degree of sine and cosine
 void lookup_init(void){
 	for(uint8_t i=0; i<91; i++){
-		sine[i] = sin(i); // from math.h
-		cosine[i] = cos(i);
+		sine[i] = sin(i*M_PI/180); 	// from math.h
+		cosine[i] = cos(i*M_PI/180);
 	}
 }
 
@@ -23,7 +23,7 @@ void lookup_init(void){
 // returns for all values a cosine of the value
 float get_cos(int16_t angle){
 	while(angle >= 360) { angle -= 360; }
-	while(angle <= 360) { angle += 360; }
+	while(angle <= -360) { angle += 360; }
 	// angle between without -360 to 360
 
 	if(angle >= 0){
@@ -57,7 +57,7 @@ float get_cos(int16_t angle){
 // returns for all values a sine of the value
 float get_sin(int16_t angle){
 	while(angle >= 360) { angle -= 360; }
-	while(angle <= 360) { angle += 360; }
+	while(angle <= -360) { angle += 360; }
 	// angle between without -360 to 360
 	if(angle >= 0){
 		if(angle <= 90){ // Quadrant I

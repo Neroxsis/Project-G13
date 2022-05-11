@@ -75,26 +75,67 @@ int main(void)
     calibrate_gyro();
     set_led(LED7, 0);
     obj_det_init();
+    //thred init. GoalCalculatins
+
 
     //messagebus_topic_t *prox_topic = messagebus_find_topic_blocking(&bus, "/proximity");
     //proximity_msg_t prox_values;
 
-    //infinite loop
-    while(1){
-    	static uint8_t goal_reached = 0;
-    	static int16_t relative_rotation = 90;
-    	static float distance = 1000; // mm
 
-    	while(!in_air() && !goal_reached){
-    	    // First turn to destination
-    		turn_angle(relative_rotation);
-    	    // Drive distance in a straight line
-    	    drive_distance(distance);
-    	    goal_reached = 1;
+
+    enum state {pointA, displacement, pointB};
+    enum state order;
+    order = pointA;
+
+    static uint8_t goal_reached = 0;
+
+
+
+    //infinite loop
+    while(1){ 			//while(order != pointB){
+
+    	clear_leds();
+
+//    	chprintf((BaseSequentialStream *)&SD3, "order = %d \r\n\n", order);
+//    	chprintf((BaseSequentialStream *)&SD3, "in_air = %d \r\n\n", in_air());
+//
+//
+//    	if (in_air()){
+//    		order = displacement;
+//    	} else {
+//    		if (order == displacement){
+//    			order = pointB;
+//    		}
+//    	}
+
+
+
+    	chprintf((BaseSequentialStream *)&SD3, "relative_rotation = %.2f \r\n\n", get_relative_rotation());
+    	chprintf((BaseSequentialStream *)&SD3, "distance = %.2f \r\n\n", get_distance());
+
+
+    	if(order == pointB && !goal_reached){
+    		// First turn to destination
+    	    //turn_angle(90);
+    	   	// Drive distance in a straight line
+    	   	//drive_distance(get_distance());
+    		//goal_reached = 1;
+    		set_led(LED1, 1);
     	}
-    	motor_stop();
-        chThdSleepMilliseconds(500);
+    	set_led(LED3, 1);
+
+
+
+
     }
+
+
+
+
+
+    motor_stop();
+    chThdSleepMilliseconds(10);
+
 }
 
 #define STACK_CHK_GUARD 0xe2dee396

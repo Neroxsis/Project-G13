@@ -15,5 +15,8 @@ void direction_init(void);
 uint8_t in_air(void);
 uint8_t incline_detected(void);
 int16_t angle_to_gradient(void);
+float get_relative_rotation(void);
+float get_distance(void);
+
 
 #endif /* DIRECTION_H_ */
