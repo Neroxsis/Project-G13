@@ -46,10 +46,11 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 
     systime_t time;
 
-    imu_msg_t imu_values;
-    messagebus_topic_t *imu_topic = messagebus_find_topic_blocking(&bus, "/imu");  //vlt als parameter mitgeben; in air definition HIER !!!
-
-
+//    imu_msg_t imu_values;
+//    messagebus_topic_t *imu_topic = messagebus_find_topic_blocking(&bus, "/imu");  //vlt als parameter mitgeben; in air definition HIER !!!
+//
+//    //updates imu values
+//    messagebus_topic_wait(imu_topic, &imu_values, sizeof(imu_values));
 
 
     // variable declarations
@@ -75,15 +76,17 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 
 
 
-    //updates imu values
-    messagebus_topic_wait(imu_topic, &imu_values, sizeof(imu_values));
+
 
 	//check if robot is on the table or in the air
-	if (fabs(imu_values.acceleration[Z_AXIS]+GRAVITY) <= Z_ACC_THRESHOLD){
-		in_air = FALSE;
-	} else {
-		in_air = TRUE;
-	}
+//	if (fabs(imu_values.acceleration[Z_AXIS]+GRAVITY) <= Z_ACC_THRESHOLD){
+//		in_air = FALSE;
+//	} else {
+//		in_air = TRUE;
+//	}
+
+	drive_distance(100);
+
 //	chprintf((BaseSequentialStream *)&SD3, " z_acc  =%.2f \r\n\n", imu_values.acceleration[Z_AXIS]+GRAVITY);
 //	chprintf((BaseSequentialStream *)&SD3, " in_air  =%d \r\n\n", in_air);
 
@@ -98,7 +101,7 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 
 
 
-    	drive_distance(100);
+
 /*
 // --------------------------------------------------------
     	chprintf((BaseSequentialStream *)&SD3, "%__________________________________________________________ \r\n\n");

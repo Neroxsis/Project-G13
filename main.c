@@ -59,8 +59,8 @@ int main(void)
     messagebus_topic_t *imu_topic = messagebus_find_topic_blocking(&bus, "/imu");  //macht man nur einmal
 
 
-    proximity_start();
-    messagebus_topic_t *proximity_topic = messagebus_find_topic_blocking(&bus, "/proximity");  //macht man nur einmal
+//    proximity_start();
+//    messagebus_topic_t *proximity_topic = messagebus_find_topic_blocking(&bus, "/proximity");  //macht man nur einmal
 
     clear_leds();
     set_body_led(0);
@@ -77,6 +77,7 @@ int main(void)
     set_led(LED7, 1);
 
 
+
     set_led(LED1, 0);
     calibrate_acc();
     set_led(LED3, 0);
@@ -85,7 +86,7 @@ int main(void)
     calibrate_gyro();
     set_led(LED7, 0);
     obj_det_init();		// initialize ThdObstacleDetection
-    goal_calc_init();	// initialize ThdGoalCalculations
+    //goal_calc_init();	// initialize ThdGoalCalculations
 
 
     // are all the Threads initialized ... ?
@@ -116,7 +117,6 @@ int main(void)
     //infinite loop
     while(1){
 
-    chprintf((BaseSequentialStream *)&SD3, " in_air = %d \r\n\n", get_in_air());
 
 	set_body_led(1);
 
@@ -165,23 +165,23 @@ int main(void)
 
 // --------------------------------------------------------------------------
 
-    	if (!in_air){
-    		x_speed=0;
-    		y_speed=0;
-    		//chprintf((BaseSequentialStream *)&SD3, "set speeds to 0");
-    	}
+//    	if (!in_air){
+//    		x_speed=0;
+//    		y_speed=0;
+//    		//chprintf((BaseSequentialStream *)&SD3, "set speeds to 0");
+//    	}
 
 // --------------------------------------------------------------------------
 
-    	// multiply by corrective factor of 100
-    	x_position += period * x_speed*100;
-    	y_position += period * y_speed*100;
-
-    	chprintf((BaseSequentialStream *)&SD3, " x_position=%.2f y_position=%.2f\r\n\n",  x_position, y_position);
-
-
-    	distance = sqrt(x_position*x_position + y_position*y_position);
-    	chprintf((BaseSequentialStream *)&SD3, " distance=%.2f \r\n\n", distance);
+//    	// multiply by corrective factor of 100
+//    	x_position += period * x_speed*100;
+//    	y_position += period * y_speed*100;
+//
+//    	chprintf((BaseSequentialStream *)&SD3, " x_position=%.2f y_position=%.2f\r\n\n",  x_position, y_position);
+//
+//
+//    	distance = sqrt(x_position*x_position + y_position*y_position);
+//    	chprintf((BaseSequentialStream *)&SD3, " distance=%.2f \r\n\n", distance);
 
 
 // ------------------------------------------------------------------------
@@ -189,18 +189,16 @@ int main(void)
 // UNTIL HERE
 
 
-
-
-		//determines state of robot
-		if(get_in_air()){
-			robot = displacement;
-		}
-		if(!get_in_air() && robot == pointA){
-			robot = pointA;
-		}
-		if(!get_in_air() && robot == displacement){
-			robot = pointB;
-		}
+//		//determines state of robot
+//		if(get_in_air()){
+//			robot = displacement;
+//		}
+//		if(!get_in_air() && robot == pointA){
+//			robot = pointA;
+//		}
+//		if(!get_in_air() && robot == displacement){
+//			robot = pointB;
+//		}
 
 
 // ----------------------------------------------------------------------------
