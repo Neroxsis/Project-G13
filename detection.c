@@ -33,16 +33,15 @@ static THD_FUNCTION(ThdObstacleDetection, arg) {
     		if(get_calibrated_prox(FRONT_LEFT_IR_SENSOR) > IR_THRESHHOLD || get_calibrated_prox(FRONT_RIGHT_IR_SENSOR) > IR_THRESHHOLD){
     			object_detected = 1;
     		}
-    		chThdSleepMilliseconds(50);
-        	chprintf((BaseSequentialStream *)&SD3, "object detected = %d \r\n\n", object_detected);
+    		chThdSleepMilliseconds(20); //a bit slower than 50 Hz should be enough
     	}
 
     	while(object_detected){
-
+    		time = chVTGetSystemTime();
     		switch(object_detected){
     			case 1:
-    				// Turn left until right sensor "sees" the object
-    				if(get_calibrated_prox(RIGHT_IR_SENSOR) > IR_THRESHHOLD){
+    				// Turn left until right sensor "sees" the object and 45° front no longer sees it
+    				if(get_calibrated_prox(RIGHT_IR_SENSOR) > IR_THRESHHOLD && get_calibrated_prox(RIGHT_FRONT_IR_SENSOR)){
     					object_detected = 2;
     				}
     				break;
@@ -65,8 +64,7 @@ static THD_FUNCTION(ThdObstacleDetection, arg) {
     			default:
     				break;
     		}
-    		chThdSleepMilliseconds(10);
-        	chprintf((BaseSequentialStream *)&SD3, "object detected = %d \r\n\n", object_detected);
+    		chThdSleepUntilWindowed(time, time + MS2ST(10)); // 100 Hz
     	}
     }
 }
