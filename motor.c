@@ -18,7 +18,7 @@
 #include "motors.h"
 #include <chprintf.h>
 
-#define ONE_TURN_STEPS 1200 //Dominik put 1200
+#define ONE_TURN_STEPS 1200
 #define WHEEL_PERIM 13 //cm
 #define TURN_SPEED 300
 #define DRIVE_SPEED 400

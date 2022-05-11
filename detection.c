@@ -25,53 +25,52 @@ static THD_FUNCTION(ThdObstacleDetection, arg) {
     (void)arg;
 
     systime_t time;
-/*
+
     //infinite loop
-    while(1){
-    	while(!object_detected){
-    		// Test for object
-    		if(get_calibrated_prox(FRONT_LEFT_IR_SENSOR) > IR_THRESHHOLD || get_calibrated_prox(FRONT_RIGHT_IR_SENSOR) > IR_THRESHHOLD){
-    			object_detected = 1;
-    		}
-    		chThdSleepMilliseconds(50);
-        	chprintf((BaseSequentialStream *)&SD3, "object detected = %d \r\n\n", object_detected);
-    	}
+//    while(1){
+//    	while(!object_detected){
+//    		// Test for object
+//    		if(get_calibrated_prox(FRONT_LEFT_IR_SENSOR) > IR_THRESHHOLD || get_calibrated_prox(FRONT_RIGHT_IR_SENSOR) > IR_THRESHHOLD){
+//    			object_detected = 1;
+//    		}
+//    		chThdSleepMilliseconds(50);
+//        	//chprintf((BaseSequentialStream *)&SD3, "object detected = %d \r\n\n", object_detected);
+//    	}
+//
+//    	while(object_detected){
+//
+//    		switch(object_detected){
+//    			case 1:
+//    				// Turn left until right sensor "sees" the object
+//    				if(get_calibrated_prox(RIGHT_IR_SENSOR) > IR_THRESHHOLD){
+//    					object_detected = 2;
+//    				}
+//    				break;
+//    			case 2:
+//    				// Drive straight until right sensor no longer detects an object
+//    				if(get_calibrated_prox(RIGHT_IR_SENSOR) < IR_THRESHHOLD){
+//    					object_detected = 3;
+//    				}else if(get_calibrated_prox(RIGHT_FRONT_IR_SENSOR) > IR_THRESHHOLD){
+//    					object_detected = 1;
+//    				} // if not turned enough -> square object
+//    				break;
+//    			case 3:
+//    				// turn right until right sensor sees the object
+//    				if(get_calibrated_prox(RIGHT_IR_SENSOR) > IR_THRESHHOLD){
+//    					object_detected = 2;
+//    				}else if(get_calibrated_prox(RIGHT_FRONT_IR_SENSOR) > IR_THRESHHOLD){
+//    					object_detected = 1;
+//    				} // if it didn't catch right sensor while turning
+//    				break;
+//    			default:
+//    				break;
+//    		}
+//    		chThdSleepMilliseconds(10);
+//        	//chprintf((BaseSequentialStream *)&SD3, "object detected = %d \r\n\n", object_detected);
+//    	}
+//    }
 
-    	while(object_detected){
-
-    		switch(object_detected){
-    			case 1:
-    				// Turn left until right sensor "sees" the object
-    				if(get_calibrated_prox(RIGHT_IR_SENSOR) > IR_THRESHHOLD){
-    					object_detected = 2;
-    				}
-    				break;
-    			case 2:
-    				// Drive straight until right sensor no longer detects an object
-    				if(get_calibrated_prox(RIGHT_IR_SENSOR) < IR_THRESHHOLD){
-    					object_detected = 3;
-    				}else if(get_calibrated_prox(RIGHT_FRONT_IR_SENSOR) > IR_THRESHHOLD){
-    					object_detected = 1;
-    				} // if not turned enough -> square object
-    				break;
-    			case 3:
-    				// turn right until right sensor sees the object
-    				if(get_calibrated_prox(RIGHT_IR_SENSOR) > IR_THRESHHOLD){
-    					object_detected = 2;
-    				}else if(get_calibrated_prox(RIGHT_FRONT_IR_SENSOR) > IR_THRESHHOLD){
-    					object_detected = 1;
-    				} // if it didn't catch right sensor while turning
-    				break;
-    			default:
-    				break;
-    		}
-    		chThdSleepMilliseconds(10);
-        	chprintf((BaseSequentialStream *)&SD3, "object detected = %d \r\n\n", object_detected);
-    	}
-    }
-
-*/
-    chThdSleepMilliseconds(10); //delete later
+    chThdSleepMilliseconds(10);
 }
 
 /*****************************Public Functions***********************************/

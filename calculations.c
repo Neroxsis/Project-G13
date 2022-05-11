@@ -5,17 +5,17 @@
 #include <constants.h>
 #include <calculations.h>
 
-static float sine[91]; // from 0 to 90 degrees (including 0° and 90°)
+static float sine[91]; // from 0 to 90 degree
 static float cosine[91];
 
 // filling out the first quadrant for each degree of sine and cosine
-// the sin, cos function from the math.h library use radian while we use degrees !!
 void lookup_init(void){
 	for(uint8_t i=0; i<91; i++){
 		sine[i] = sin(i*M_PI/180); 	// from math.h
 		cosine[i] = cos(i*M_PI/180);
 	}
 }
+
 
 //------------------------------------------------------------------------------------------
 
@@ -49,6 +49,7 @@ float get_cos(int16_t angle){
 	}
 	return 0;
 }
+
 
 //-------------------------------------------------------------------------------------------
 

@@ -15,8 +15,8 @@ void direction_init(void);
 uint8_t in_air(void);
 uint8_t incline_detected(void);
 int16_t angle_to_gradient(void);
-void thread_GoalCalculations_start(void);
-int8_t get_in_air(void);
+float get_relative_rotation(void);
 float get_distance(void);
+
 
 #endif /* DIRECTION_H_ */
