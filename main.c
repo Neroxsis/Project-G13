@@ -92,31 +92,34 @@ int main(void)
     enum state order;
     order = pointA;
 
-    int8_t counter_deceleration;
-    int8_t counter_small_acc;
+    int8_t counter_deceleration = 0;
+    int8_t counter_small_acc = 0;
 
 //infinite loop
 while(1){
 
 
 // ----------------------------------------------------------------------
-//	Determines when robot is picked up and turns body lights on if robot is picked up
+//	Determines if robot is picked up and then turns on body lights
 
 	if (fabs(get_z_axis_acc() + GRAVITY) < Z_ACC_THRESHOLD){
 		counter_small_acc++;
 		if(counter_small_acc == 10){
 			picked_up = 0;
+			set_body_led(picked_up);
 		}
 	}
 
 	if ((get_z_axis_acc() + GRAVITY) <= -Z_ACC_THRESHOLD){
 		if(picked_up == 0){
 			picked_up = 1;
+			set_body_led(picked_up);
 		}else{
 
 			counter_deceleration++;
 			if (counter_deceleration==8){
 				picked_up = 0;
+				set_body_led(picked_up);
 			}
 		}
 	}
@@ -124,52 +127,44 @@ while(1){
 // ----------------------------------------------------------------------
 
 
-//    while(order != pointB){		//while(1)
-//    	chprintf((BaseSequentialStream *)&SD3, "__________________________________________ \r\n\n");
-//    	chprintf((BaseSequentialStream *)&SD3, "order = %d \r\n\n", order);
-    	//chprintf((BaseSequentialStream *)&SD3, "picked up = %d \r\n\n", picked_up);
-//    	chprintf((BaseSequentialStream *)&SD3, "relative_rotation = %.2f \r\n\n", get_relative_rotation());
+    while(order != pointB){		//while(1)
+    	if (picked_up){
+    		order = displacement;
+    	} else {
+    		if (order == displacement){
+    			order = pointB;
+    		}
+    	}
+    }
+
+    chprintf((BaseSequentialStream *)&SD3, "__________________________________________ \r\n\n");
+    chprintf((BaseSequentialStream *)&SD3, "order = %d \r\n\n", order);
+    chprintf((BaseSequentialStream *)&SD3, "picked up = %d \r\n\n", picked_up);
+    chprintf((BaseSequentialStream *)&SD3, "relative_rotation = %.2f \r\n\n", get_relative_rotation());
+    	chprintf((BaseSequentialStream *)&SD3, "distance = %.2f \r\n\n", get_distance());
+    	chprintf((BaseSequentialStream *)&SD3, "x_speed = %.2f \r\n\n", get_x_speed());
+    	chprintf((BaseSequentialStream *)&SD3, "y_speed = %.2f \r\n\n", get_y_speed());
+    	chprintf((BaseSequentialStream *)&SD3, "x_position = %.2f \r\n\n", get_x_position());
+    	chprintf((BaseSequentialStream *)&SD3, "y_position = %.2f \r\n\n", get_y_position());
 //
 //
-//    	if (in_air()){
-//    		order = displacement;
-//    	} else {
-//    		if (order == displacement){
-//    			order = pointB;
-//    		}
-//    	}
-//    }
-
-
-		//chprintf((BaseSequentialStream *)&SD3, "relative_rotation = %.2f \r\n\n", get_relative_rotation());
-
-//    	chprintf((BaseSequentialStream *)&SD3, "distance = %.2f \r\n\n", get_distance());
-//    	chprintf((BaseSequentialStream *)&SD3, "x_speed = %.2f \r\n\n", get_x_speed());
-//    	chprintf((BaseSequentialStream *)&SD3, "y_speed = %.2f \r\n\n", get_y_speed());
-//    	chprintf((BaseSequentialStream *)&SD3, "x_position = %.2f \r\n\n", get_x_position());
-//    	chprintf((BaseSequentialStream *)&SD3, "y_positino = %.2f \r\n\n", get_y_position());
-
-//    chprintf((BaseSequentialStream *)&SD3, "__________________________________________ \r\n\n");
-//    chprintf((BaseSequentialStream *)&SD3, "order = %d \r\n\n", order);
-//        	chprintf((BaseSequentialStream *)&SD3, "in_air = %d \r\n\n", in_air());
 //
-//    if(order == pointB && !goal_reached){
+//    if(order == pointB){
 //    	 set_led(LED1, 1);
+//    	 chThdSleepMilliseconds(500);
 //    	 set_led(LED3, 1);
+//    	 chThdSleepMilliseconds(500);
 //    	 set_led(LED5, 1);
+//    	 chThdSleepMilliseconds(500);
 //    	 set_led(LED7, 1);
-//    	 chThdSleepMilliseconds(5000);
-
-
-
-
-    	//First turn to destination
+//    	 chThdSleepMilliseconds(4000);
+//
+//    	//First turn to destination
 //    	chprintf((BaseSequentialStream *)&SD3, "relative_rotation = %.2f \r\n\n", get_relative_rotation());
-//    	//turn_angle(-get_relative_rotation()); //get_relative_rotation()
+//    	turn_angle(-get_relative_rotation()); //get_relative_rotation()
 //    	// Drive distance in a straight line
-//    	//drive_distance(100);
-//    	motor_stop();
-//    	goal_reached = 0;  // might not be necessary; the same as order
+//    	drive_distance(100);
+//    	motor_stop();		// THIS WILL BE INCLUDED IN THE NEW MOTOR.C FILE FROM DOMINIK
 //    	order = pointA;
 //
 //    	set_led(LED1, 0);
@@ -180,17 +175,18 @@ while(1){
 //
 //    	chprintf((BaseSequentialStream *)&SD3, "__________________________________________ \r\n\n");
 //    	chprintf((BaseSequentialStream *)&SD3, "order = %d \r\n\n", order);
-//    	    	chprintf((BaseSequentialStream *)&SD3, "in_air = %d \r\n\n", in_air());
+//
+//
+//    }
 
 
- //   }
+		//chThdSleepMilliseconds(10);
 
 
-		chThdSleepMilliseconds(10);
-} // end of while loop
-
-    motor_stop();
     chThdSleepMilliseconds(10);
+	} // END OF WHILE LOOP
+
+motor_stop();
 
 }
 
