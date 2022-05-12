@@ -26,4 +26,10 @@
 #define INCLINE_TH -0.5f
 #define DIVIDE_BYZ 0.1f
 
+// directions
+#define GRAVITY 9.81
+
+// main
+#define Z_ACC_THRESHOLD 0.5 //not yet calbibrated maybe even lower
+
 #endif /* CONSTANTS_H */

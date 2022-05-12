@@ -25,6 +25,10 @@ messagebus_t bus;
 MUTEX_DECL(bus_lock);
 CONDVAR_DECL(bus_condvar);
 
+
+static uint8_t picked_up = 0;
+
+
 static void serial_start(void)
 {
 	static SerialConfig ser_cfg = {
@@ -78,6 +82,7 @@ int main(void)
     //thred init. GoalCalculatins
 
 
+
     //messagebus_topic_t *prox_topic = messagebus_find_topic_blocking(&bus, "/proximity");
     //proximity_msg_t prox_values;
 
@@ -87,17 +92,43 @@ int main(void)
     enum state order;
     order = pointA;
 
-    static uint8_t goal_reached = 0;
+    int8_t counter_deceleration;
+    int8_t counter_small_acc;
+
+//infinite loop
+while(1){
 
 
+// ----------------------------------------------------------------------
+//	Determines when robot is picked up and turns body lights on if robot is picked up
 
-    //infinite loop
-    while(1){ 			//while(order != pointB){
+	if (fabs(get_z_axis_acc() + GRAVITY) < Z_ACC_THRESHOLD){
+		counter_small_acc++;
+		if(counter_small_acc == 10){
+			picked_up = 0;
+		}
+	}
 
-    	clear_leds();
+	if ((get_z_axis_acc() + GRAVITY) <= -Z_ACC_THRESHOLD){
+		if(picked_up == 0){
+			picked_up = 1;
+		}else{
 
+			counter_deceleration++;
+			if (counter_deceleration==8){
+				picked_up = 0;
+			}
+		}
+	}
+	set_body_led(picked_up);
+// ----------------------------------------------------------------------
+
+
+//    while(order != pointB){		//while(1)
+//    	chprintf((BaseSequentialStream *)&SD3, "__________________________________________ \r\n\n");
 //    	chprintf((BaseSequentialStream *)&SD3, "order = %d \r\n\n", order);
-//    	chprintf((BaseSequentialStream *)&SD3, "in_air = %d \r\n\n", in_air());
+    	//chprintf((BaseSequentialStream *)&SD3, "picked up = %d \r\n\n", picked_up);
+//    	chprintf((BaseSequentialStream *)&SD3, "relative_rotation = %.2f \r\n\n", get_relative_rotation());
 //
 //
 //    	if (in_air()){
@@ -107,31 +138,56 @@ int main(void)
 //    			order = pointB;
 //    		}
 //    	}
+//    }
+
+
+		//chprintf((BaseSequentialStream *)&SD3, "relative_rotation = %.2f \r\n\n", get_relative_rotation());
+
+//    	chprintf((BaseSequentialStream *)&SD3, "distance = %.2f \r\n\n", get_distance());
+//    	chprintf((BaseSequentialStream *)&SD3, "x_speed = %.2f \r\n\n", get_x_speed());
+//    	chprintf((BaseSequentialStream *)&SD3, "y_speed = %.2f \r\n\n", get_y_speed());
+//    	chprintf((BaseSequentialStream *)&SD3, "x_position = %.2f \r\n\n", get_x_position());
+//    	chprintf((BaseSequentialStream *)&SD3, "y_positino = %.2f \r\n\n", get_y_position());
+
+//    chprintf((BaseSequentialStream *)&SD3, "__________________________________________ \r\n\n");
+//    chprintf((BaseSequentialStream *)&SD3, "order = %d \r\n\n", order);
+//        	chprintf((BaseSequentialStream *)&SD3, "in_air = %d \r\n\n", in_air());
+//
+//    if(order == pointB && !goal_reached){
+//    	 set_led(LED1, 1);
+//    	 set_led(LED3, 1);
+//    	 set_led(LED5, 1);
+//    	 set_led(LED7, 1);
+//    	 chThdSleepMilliseconds(5000);
 
 
 
-    	chprintf((BaseSequentialStream *)&SD3, "relative_rotation = %.2f \r\n\n", get_relative_rotation());
-    	chprintf((BaseSequentialStream *)&SD3, "distance = %.2f \r\n\n", get_distance());
+
+    	//First turn to destination
+//    	chprintf((BaseSequentialStream *)&SD3, "relative_rotation = %.2f \r\n\n", get_relative_rotation());
+//    	//turn_angle(-get_relative_rotation()); //get_relative_rotation()
+//    	// Drive distance in a straight line
+//    	//drive_distance(100);
+//    	motor_stop();
+//    	goal_reached = 0;  // might not be necessary; the same as order
+//    	order = pointA;
+//
+//    	set_led(LED1, 0);
+//    	set_led(LED3, 0);
+//    	set_led(LED5, 0);
+//    	set_led(LED7, 0);
+//    	chThdSleepMilliseconds(5000);
+//
+//    	chprintf((BaseSequentialStream *)&SD3, "__________________________________________ \r\n\n");
+//    	chprintf((BaseSequentialStream *)&SD3, "order = %d \r\n\n", order);
+//    	    	chprintf((BaseSequentialStream *)&SD3, "in_air = %d \r\n\n", in_air());
 
 
-    	if(order == pointB && !goal_reached){
-    		// First turn to destination
-    	    //turn_angle(90);
-    	   	// Drive distance in a straight line
-    	   	//drive_distance(get_distance());
-    		//goal_reached = 1;
-    		set_led(LED1, 1);
-    	}
-    	set_led(LED3, 1);
+ //   }
 
 
-
-
-    }
-
-
-
-
+		chThdSleepMilliseconds(10);
+} // end of while loop
 
     motor_stop();
     chThdSleepMilliseconds(10);

@@ -17,6 +17,11 @@ uint8_t incline_detected(void);
 int16_t angle_to_gradient(void);
 float get_relative_rotation(void);
 float get_distance(void);
+float get_z_axis_acc(void);
+float get_x_speed(void);
+float get_y_speed(void);
+float get_x_position(void);
+float get_y_position(void);
 
 
 #endif /* DIRECTION_H_ */
