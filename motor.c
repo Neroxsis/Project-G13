@@ -176,6 +176,7 @@ void drive_steps(int32_t steps, enum dir direction){
 	    	right_motor_set_pos(evade_obj_alg());
 	    }
 	}while((abs(steps) > abs(right_motor_get_pos())));
+	motors_stop();
 }
 
 //-------------------------------------------------------------------

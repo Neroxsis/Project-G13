@@ -11,8 +11,8 @@ static float cosine[91];
 // filling out the first quadrant for each degree of sine and cosine
 void lookup_init(void){
 	for(uint8_t i=0; i<91; i++){
-		sine[i] = sin(i*M_PI/180); 	// from math.h
-		cosine[i] = cos(i*M_PI/180);
+		sine[i] = sin(i*M_PI/PI_DEG); 	// from math.h
+		cosine[i] = cos(i*M_PI/PI_DEG);
 	}
 }
 
