@@ -45,14 +45,13 @@ static float x_acc_displacement = 0;
 static float y_acc_displacement = 0;
 static float print_theta = 0;
 
-
 static uint8_t picked_up = 0;
 static int16_t counter_displacement = 0;
 static int16_t save_return_angle = 0;
 
-
 static enum state {pointA, displacement, pointB};
 static enum state order = pointA;
+
 
 static THD_WORKING_AREA(waThdGoalCalculations, 1024);
 static THD_FUNCTION(ThdGoalCalculations, arg) {
@@ -86,55 +85,23 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 
 
 
+    while(1){ //infinite loop
 
-
-    while(1){
+    	// calculation relative_rotation
     	time = chVTGetSystemTime();
 		messagebus_topic_wait(imu_topic, &imu_values, sizeof(imu_values));
-
-		x_axis_acc = imu_values.acceleration[X_AXIS];
-		y_axis_acc = imu_values.acceleration[Y_AXIS];
-		z_axis_acc = imu_values.acceleration[Z_AXIS];
-
-
-		// calculate angle
-
-		if (fabs(get_gyro_deg(&imu_values, X_AXIS)) >= ROTATION_THRESHOLD){
-			relative_rotation_x += get_gyro_deg(&imu_values, X_AXIS) * period_rot;
-		}
-
-		if (fabs(get_gyro_deg(&imu_values, Y_AXIS)) >= ROTATION_THRESHOLD){
-			relative_rotation_y += get_gyro_deg(&imu_values, Y_AXIS) * period_rot;
-		}
 
 		if (fabs(get_gyro_deg(&imu_values, Z_AXIS)) >= ROTATION_THRESHOLD){
 			relative_rotation_z += get_gyro_deg(&imu_values, Z_AXIS) * period_rot;
 		}
 
 
-		float gravity_x = GRAVITY * (sin(relative_rotation_y) * cos(relative_rotation_z) + sin(relative_rotation_x)*sin(relative_rotation_z));
-		float gravity_y = GRAVITY * (-sin(relative_rotation_x) * cos(relative_rotation_z) + sin(relative_rotation_y)*sin(relative_rotation_z));
-
-
-
-		// CHECK if the thresholds are needed
-		if (fabs(imu_values.acceleration[X_AXIS]) >= X_ACC_THRESHOLD && fabs(imu_values.acceleration[Y_AXIS]) >= Y_ACC_THRESHOLD){
-			x_speed += period * ((imu_values.acceleration[X_AXIS]-gravity_x) * get_cos((int)relative_rotation_z) - (imu_values.acceleration[Y_AXIS]-gravity_y) * get_sin((int)relative_rotation_z));
-			y_speed += period * ((imu_values.acceleration[X_AXIS]-gravity_x) * get_sin((int)relative_rotation_z) + (imu_values.acceleration[Y_AXIS]-gravity_y) * get_cos((int)relative_rotation_z));
-		}
-
-		if (!picked_up){
-		    x_speed=0;
-		    y_speed=0;
-		}
-
-// -----------------------------------
-
 		// ----------------------------------------------------------------------
 		//	Determines if robot is picked up and then turns on body lights
-		// doesn^t work anymore if u delete the set body led in the for loops
+		// doesn't work anymore if u delete the set body led in the for loops
 
-		 if (fabs(z_axis_acc + GRAVITY) < Z_ACC_THRESHOLD){
+		// checks if robot is on the ground
+		 if (fabs(imu_values.acceleration[Z_AXIS] + GRAVITY) < Z_ACC_THRESHOLD){
 		 	counter_small_acc++;
 		 	if(counter_small_acc == 5){
 		 		picked_up = 0;
@@ -143,51 +110,67 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 		 }
 
 
-		 if ((z_axis_acc + GRAVITY) <= -Z_ACC_THRESHOLD){
-		 	if(picked_up == 0){
-		 		picked_up = 1;
-		 		set_body_led(picked_up);
-		 		set_picked_up(picked_up);
-		 	}else{
-		 			counter_deceleration++;
-		 		if (counter_deceleration==8){
-		 			picked_up = 0;
-		 			set_body_led(picked_up);
-		 		}
-		 	}
+		 // do it with x,y, acc
+		 // maybe adjust THRESHOLD..
+		 // checks if robot picked up or put down
+//		 if (fabs(imu_values.acceleration[X_AXIS]) >= X_ACC_THRESHOLD &&
+//				 fabs(imu_values.acceleration[Y_AXIS]) >= Y_ACC_THRESHOLD){
+//		 	if(picked_up == 0){
+//		 		picked_up = 1;
+//		 		set_body_led(picked_up);
+//		 		set_picked_up(picked_up);
+//
+//		 	}else{
+//		 			counter_deceleration++;
+//		 		if (counter_deceleration==8){
+//		 			picked_up = 0;
+//		 			set_body_led(picked_up);
+//		 		}
+//		 	}
+//		 }
+
+		 //pick up
+		 if (fabs(imu_values.acceleration[X_AXIS]) >= X_ACC_THRESHOLD &&
+		 				 fabs(imu_values.acceleration[Y_AXIS]) >= Y_ACC_THRESHOLD){
+		 	picked_up = 1;
+		 	set_body_led(picked_up);
+		 	set_picked_up(picked_up);
 		 }
 
-		//stop calculation as soon as it touches the ground
-		 // --------------------------------------------------------------------
+		 // put down
+		 if (fabs(imu_values.acceleration[X_AXIS]) <= X_ACC_THRESHOLD &&
+				 fabs(imu_values.acceleration[Y_AXIS]) <= Y_ACC_THRESHOLD){
+		 	picked_up = 0;
+		 	set_body_led(picked_up);
+		 	set_picked_up(picked_up);
+		 }
 
 
+		// pointB if robot is put down
 		 if(order != pointB){
 			 if (picked_up){
 				order = displacement;
-				} else {
-					if (order == displacement){
-						order = pointB;
-					}
+			 } else {
+				if (order == displacement){
+					order = pointB;
 				}
+			 }
 		 }
 
 
+		 //return angle is calculated here
 		 if(order == displacement){
 		   	counter_displacement ++;
-		   	chprintf((BaseSequentialStream *)&SD3, "counter displacement = %d \r\n\n", counter_displacement);
 		   	if(counter_displacement == 30){
-		    	chprintf((BaseSequentialStream *)&SD3, "x acc = %.2f \r\n\n", x_axis_acc);
-		    	x_acc_sign_displacement = signf(x_axis_acc);
-		    	x_acc_displacement = x_axis_acc;
-		    	y_acc_displacement = y_axis_acc;
-		    	chprintf((BaseSequentialStream *)&SD3, "y acc = %.2f \r\n\n", y_axis_acc);
-		    	y_acc_sign_displacement = signf(y_axis_acc);
-
+		    	x_acc_sign_displacement = signf(imu_values.acceleration[X_AXIS]);
+		    	x_acc_displacement = imu_values.acceleration[X_AXIS];
+		    	y_acc_displacement = imu_values.acceleration[Y_AXIS];
+		    	y_acc_sign_displacement = signf(imu_values.acceleration[Y_AXIS]);
 		    	save_return_angle = return_angle(get_x_axis_acc(), get_y_axis_acc(), get_relative_rotation_z());
 		   	}
 		 }//end if
 
-		chThdSleepUntilWindowed(time, time + MS2ST(12));	// IMU reads new values every 250 Hz -> Source CITE !!!
+		 chThdSleepUntilWindowed(time, time + MS2ST(12));	// IMU reads new values every 250 Hz -> Source CITE !!!
 
 
     }
@@ -329,8 +312,6 @@ int8_t check_order_pointB(void){
 //rethink the stuff I'm giving as parameters ... !!
 float return_angle(float x_acc, float y_acc, float phi){
 	float theta = 0;
-	float angle = 0;
-	float fraction = 0;
 
 	theta = atan2(y_acc_displacement, x_acc_displacement)*PI_DEG/M_PI;
 	print_theta = theta;
@@ -354,7 +335,7 @@ float return_angle(float x_acc, float y_acc, float phi){
 		}
 	}
 
-
+	return 0;
 
 }
 
