@@ -41,4 +41,18 @@ void set_y_acc_displacement(float y_acc_displacement_);
 float get_print_theta(void);
 
 
+
+uint8_t get_picked_up(void);
+void set_picked_up(uint8_t picked_up_);
+enum state get_order(void);
+void set_order(int8_t i);
+float get_save_return_angle(void);
+void set_save_return_angle(float angle);
+int16_t get_counter_displacement(void);
+void set_counter_displacement(int16_t counter);
+int8_t check_order_pointB(void);
+
+
+
+
 #endif /* DIRECTION_H_ */

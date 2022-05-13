@@ -26,7 +26,6 @@
 extern messagebus_t bus;
 
 static imu_msg_t imu_values;
-static uint8_t picked_up = 0;
 static float relative_rotation_x = 0;
 static float relative_rotation_y = 0;
 static float relative_rotation_z = 0;
@@ -48,6 +47,14 @@ static float y_acc_displacement = 0;
 static float print_theta = 0;
 
 
+static uint8_t picked_up = 0;
+static int16_t counter_displacement = 0;
+static int16_t save_return_angle = 0;
+
+
+static enum state {pointA, displacement, pointB};
+static enum state order;
+
 static THD_WORKING_AREA(waThdGoalCalculations, 1024);
 static THD_FUNCTION(ThdGoalCalculations, arg) {
 
@@ -56,20 +63,13 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 
     systime_t time;
     imu_msg_t imu_values;
-
-
-//    float x_speed = 0;  // mm/s
-//    float y_speed = 0;  // mm/s
-//
-//    float x_position = 0;
-//    float y_position = 0;
-
-
+    messagebus_topic_t *imu_topic = messagebus_find_topic_blocking(&bus, "/imu");
 
     float period = 0.012; // because float * float faster than float * int
     float period_rot = 0.012;
-
-
+    order = pointA;
+    int8_t counter_deceleration = 0;
+    int8_t counter_small_acc = 0;
 
 
 #define ACCELERATION_NOISE_TH 42
@@ -77,30 +77,26 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 #define WAIT_TIME 1234
 #define ACTIVATION_TH 45245
 #define Z_ACC_THRESHOLD 1 //not yet calbibrated maybe even lower
-
-
 #define X_ACC_THRESHOLD 0.07  // NOT yet calibrated !!
 #define Y_ACC_THRESHOLD 0.07  // NOT yet calibrated !!
-
 #define ROTATION_THRESHOLD 0.001f  // NOT yet calibrated !!
 #define X_ROTATION_THRESHOLD 1.5  // NOT yet calibrated !!
 #define Y_ROTATION_THRESHOLD 1.5  // NOT yet calibrated !!
 #define SPEED_CORRECTION 100 // NOT yet calibrated !!
-
 #define THRESHOLD_RETURN_ANGLE 0.2
 
 
-    messagebus_topic_t *imu_topic = messagebus_find_topic_blocking(&bus, "/imu");
+
+
+
 
     while(1){
-
     	time = chVTGetSystemTime();
 		messagebus_topic_wait(imu_topic, &imu_values, sizeof(imu_values));
 
 		x_axis_acc = imu_values.acceleration[X_AXIS];
 		y_axis_acc = imu_values.acceleration[Y_AXIS];
 		z_axis_acc = imu_values.acceleration[Z_AXIS];
-
 
 
 		// calculate angle
@@ -116,7 +112,6 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 		if (fabs(get_gyro_deg(&imu_values, Z_AXIS)) >= ROTATION_THRESHOLD){
 			relative_rotation_z += get_gyro_deg(&imu_values, Z_AXIS) * period_rot;
 		}
-
 
 
 		float gravity_x = GRAVITY * (sin(relative_rotation_y) * cos(relative_rotation_z) + sin(relative_rotation_x)*sin(relative_rotation_z));
@@ -135,18 +130,67 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 		    y_speed=0;
 		}
 
+// -----------------------------------
 
-		// y position ist forwärts genauer als rückwärts
+		// ----------------------------------------------------------------------
+		//	Determines if robot is picked up and then turns on body lights
+		// doesn^t work anymore if u delete the set body led in the for loops
+
+		 if (fabs(z_axis_acc + GRAVITY) < Z_ACC_THRESHOLD){
+		 	counter_small_acc++;
+		 	if(counter_small_acc == 5){
+		 		picked_up = 0;
+		 		set_body_led(picked_up);
+		 	}
+		 }
 
 
-		// calculate distance
-		x_position += period * x_speed * SPEED_CORRECTION;
-		y_position += period * y_speed * SPEED_CORRECTION;
+		 if ((z_axis_acc + GRAVITY) <= -Z_ACC_THRESHOLD){
+		 	if(picked_up == 0){
+		 		picked_up = 1;
+		 		set_body_led(picked_up);
+		 		set_picked_up(picked_up);
+		 	}else{
+		 			counter_deceleration++;
+		 		if (counter_deceleration==8){
+		 			picked_up = 0;
+		 			set_body_led(picked_up);
+		 		}
+		 	}
+		 }
 
-		distance = sqrt(x_position*x_position + y_position*y_position);  // aus whileschleife herausnehmen !!!
+		//stop calculation as soon as it touches the ground
+		 // --------------------------------------------------------------------
 
+
+		 if(order != pointB){
+			 if (picked_up){
+				order = displacement;
+				} else {
+					if (order == displacement){
+						order = pointB;
+					}
+				}
+		 }
+
+
+		 if(order == displacement){
+		   	counter_displacement ++;
+		   	chprintf((BaseSequentialStream *)&SD3, "counter displacement = %d \r\n\n", counter_displacement);
+		   	if(counter_displacement == 30){
+		    	chprintf((BaseSequentialStream *)&SD3, "x acc = %.2f \r\n\n", x_axis_acc);
+		    	x_acc_sign_displacement = signf(x_axis_acc);
+		    	x_acc_displacement = x_axis_acc;
+		    	y_acc_displacement = y_axis_acc;
+		    	chprintf((BaseSequentialStream *)&SD3, "y acc = %.2f \r\n\n", y_axis_acc);
+		    	y_acc_sign_displacement = signf(y_axis_acc);
+
+		    	save_return_angle = return_angle(get_x_axis_acc(), get_y_axis_acc(), get_relative_rotation_z());
+		   	}
+		 }//end if
 
 		chThdSleepUntilWindowed(time, time + MS2ST(12));	// IMU reads new values every 250 Hz -> Source CITE !!!
+
 
     }
 }
@@ -239,6 +283,46 @@ float get_print_theta(void){
 
 void set_y_acc_sign_displacement(int8_t y_acc_sign_displacement_){
 	y_acc_sign_displacement = y_acc_sign_displacement_;
+}
+
+uint8_t get_picked_up(void){
+	return picked_up;
+}
+
+
+
+enum state get_order(void){
+	return order;
+}
+
+void set_order(int8_t i){
+	if (i==0){order=pointA;}
+	if (i==1){order=displacement;}
+	if (i==2){order=pointB;}
+}
+
+float get_save_return_angle(void){
+	return save_return_angle;
+}
+
+void set_save_return_angle(float angle){
+	save_return_angle = angle;
+}
+
+int16_t get_counter_displacement(void){
+	return counter_displacement;
+}
+
+void set_counter_displacement(int16_t counter){
+	counter_displacement = counter;
+}
+
+int8_t check_order_pointB(void){
+	if(order == pointB){
+		return 1;
+	}else{
+		return 0;
+	}
 }
 
 
