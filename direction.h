@@ -12,16 +12,35 @@
 #include "hal.h"
 
 void direction_init(void);
-uint8_t in_air(void);
+void set_picked_up(uint8_t picked_up_);
 uint8_t incline_detected(void);
 int16_t angle_to_gradient(void);
-float get_relative_rotation(void);
+float get_relative_rotation_x(void);
+float get_relative_rotation_y(void);
+float get_relative_rotation_z(void);
 float get_distance(void);
+float get_x_axis_acc(void);
+float get_y_axis_acc(void);
 float get_z_axis_acc(void);
 float get_x_speed(void);
 float get_y_speed(void);
 float get_x_position(void);
 float get_y_position(void);
+float return_angle(float x, float y, float phi);
+
+int8_t get_x_acc_sign_displacement(void);
+void set_x_acc_sign_displacement(int8_t acc_sign_displacement_t);
+
+int8_t get_y_acc_sign_displacement(void);
+void set_y_acc_sign_displacement(int8_t acc_sign_displacement_t);
+
+float get_x_acc_displacement(void);
+void set_x_acc_displacement(float x_acc_displacement_);
+
+float get_y_acc_displacement(void);
+void set_y_acc_displacement(float y_acc_displacement_);
+
+float get_print_theta(void);
 
 
 #endif /* DIRECTION_H_ */

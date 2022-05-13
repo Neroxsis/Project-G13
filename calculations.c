@@ -8,7 +8,8 @@
 static float sine[91]; // from 0 to 90 degree
 static float cosine[91];
 
-// filling out the first quadrant for each degree of sine and cosine
+// filling out the first quadrant for each degree of sine and cosin
+// math.h uses radian: convert degrees to radian
 void lookup_init(void){
 	for(uint8_t i=0; i<91; i++){
 		sine[i] = sin(i*M_PI/180); 	// from math.h
