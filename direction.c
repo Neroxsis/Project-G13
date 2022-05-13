@@ -110,50 +110,36 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 		 }
 
 
-		 // do it with x,y, acc
-		 // maybe adjust THRESHOLD..
-		 // checks if robot picked up or put down
-//		 if (fabs(imu_values.acceleration[X_AXIS]) >= X_ACC_THRESHOLD &&
-//				 fabs(imu_values.acceleration[Y_AXIS]) >= Y_ACC_THRESHOLD){
-//		 	if(picked_up == 0){
-//		 		picked_up = 1;
-//		 		set_body_led(picked_up);
-//		 		set_picked_up(picked_up);
-//
-//		 	}else{
-//		 			counter_deceleration++;
-//		 		if (counter_deceleration==8){
-//		 			picked_up = 0;
-//		 			set_body_led(picked_up);
-//		 		}
-//		 	}
-//		 }
-
-		 //pick up
-		 if (fabs(imu_values.acceleration[X_AXIS]) >= X_ACC_THRESHOLD &&
-		 				 fabs(imu_values.acceleration[Y_AXIS]) >= Y_ACC_THRESHOLD){
-		 	picked_up = 1;
-		 	set_body_led(picked_up);
-		 	set_picked_up(picked_up);
-		 }
-
-		 // put down
-		 if (fabs(imu_values.acceleration[X_AXIS]) <= X_ACC_THRESHOLD &&
-				 fabs(imu_values.acceleration[Y_AXIS]) <= Y_ACC_THRESHOLD){
-		 	picked_up = 0;
-		 	set_body_led(picked_up);
-		 	set_picked_up(picked_up);
-		 }
-
-
-		// pointB if robot is put down
+		 // pointB if robot is put down
 		 if(order != pointB){
-			 if (picked_up){
-				order = displacement;
-			 } else {
-				if (order == displacement){
-					order = pointB;
-				}
+
+
+			 //pick up
+			 if (fabs(imu_values.acceleration[X_AXIS]) >= X_ACC_THRESHOLD &&
+							 fabs(imu_values.acceleration[Y_AXIS]) >= Y_ACC_THRESHOLD){
+				picked_up = 1;
+				set_body_led(picked_up);
+				set_picked_up(picked_up);
+			 }
+
+			 // put down
+			 if (fabs(imu_values.acceleration[X_AXIS]) <= X_ACC_THRESHOLD &&
+					 fabs(imu_values.acceleration[Y_AXIS]) <= Y_ACC_THRESHOLD){
+				picked_up = 0;
+				set_body_led(picked_up);
+				set_picked_up(picked_up);
+			 }
+
+			 // pointB if robot is put down
+			 if(order != pointB){
+				 if (picked_up){
+					order = displacement;
+				 } else {
+					if (order == displacement){
+						order = pointB;
+						picked_up = 0; //
+					}
+				 }
 			 }
 		 }
 
