@@ -271,10 +271,93 @@ uint8_t incline_detected(void){
 	if(imu_values.acceleration[Z_AXIS] < INCLINE_TH){
 		return 1;
 	}
-	return (PI_DEG/2) * signf(x) + theta - phi;
+	return 0;
+}
+
+int16_t angle_to_gradient(void){
+	int16_t angle = 0;
+	if(incline_detected()){
+		if(fabs(imu_values.acceleration[Y_AXIS]) < DIVIDE_BYZ){
+			angle = 90;
+		}else{
+			angle = (int) ((PI_DEG / M_PI) * atan2(imu_values.acceleration[X_AXIS], imu_values.acceleration[Y_AXIS]));
+		}
+	}
+	return angle;
+}
+
+// phi = relative_rotation_z
+
+//or I could just take the acc during the displacement and then take the sign here...
+//rethink the stuff I'm giving as parameters ... !!
+float return_angle(float x_acc, float y_acc, float phi){
+	float theta = 0;
+	float angle = 0;
+	float fraction = 0;
+
+	theta = atan2(y_acc_displacement, x_acc_displacement)*PI_DEG/M_PI;
+	print_theta = theta;
+
+	if(x_acc_sign_displacement == 1){
+
+		if(y_acc_sign_displacement == 1){	// quadrant I  OK
+			return -90 + theta;
+		} else {							// quadrant IV
+			return - 180 - theta;
+		}
+	}
+
+
+	if(x_acc_sign_displacement == -1){
+
+		if(y_acc_sign_displacement == 1){	// quadrant II  OK
+			return -90 + theta;
+		} else {							// quadrant III Wrong: N, gernerally maybe a bit off
+			return 90 + (180 + theta); // used to be -
+		}
+	}
+
+
+
 }
 
 
 
+
+// ------------------------------------------
+//float return_angle(float x_acc, float y_acc, float phi){
+//	float theta = 0;
+//	float angle = 0;
+//	float fraction = 0;
+//	if(x_acc_displacement >= THRESHOLD_RETURN_ANGLE){
+//		if(fabs(y_acc_displacement) <= Y_ACC_THRESHOLD){
+//			y_acc_displacement = 0;
+//		}
+//		fraction = y_acc_displacement,x_acc_displacement;
+//		theta = atan(fraction)*PI_DEG/M_PI;	//used to be atan2
+//		//angle = (PI_DEG/2) * signf(-x_acc) + theta - phi;
+//		angle = (PI_DEG/2) * (-x_acc_sign_displacement) + theta - phi;
+//	}else if (x_acc_displacement <= - THRESHOLD_RETURN_ANGLE){
+//		//theta = PI_DEG/2;
+//		fraction = y_acc_displacement,x_acc_displacement;65+
+//		theta = atan(fraction)*PI_DEG/M_PI; //used to be atan2
+//
+////		if(theta >= PI_DEG/2 && theta <= PI_DEG){
+////			theta = -theta + PI_DEG/2;
+////		}
+//
+//		//angle = (PI_DEG/2) * signf(-x_acc) + theta - phi;
+//		angle = (PI_DEG/2) * (-x_acc_sign_displacement) + theta - phi;		//maybe use atan() gives a value between -90 and 90
+//	}else if (fabs(x_acc_displacement) <= THRESHOLD_RETURN_ANGLE){
+//		if(x_acc_displacement <= 0.5){
+//			x_acc_displacement = 0;
+//		}
+//		fraction = y_acc_displacement,x_acc_displacement;
+//		theta = atan(fraction)*PI_DEG/M_PI;	//used to be atan2
+//		angle = (PI_DEG/2) * y_acc_sign_displacement + theta - phi;  atan2()
+//	}
+//	print_theta = theta;
+//	return angle; // I put a minus in signf
+//}
 
 
