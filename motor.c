@@ -239,6 +239,6 @@ void motors_drive_dir(enum dir direction, uint8_t fraction){
 
 
 // 0 = searching, higher = found
-void set_found_goal(uint8_t state){
-	found_goal = state;
+void set_found_goal(void){
+	found_goal = 1;
 }

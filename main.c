@@ -62,7 +62,7 @@ int main(void)
     set_front_led(0);
     lookup_init();
     process_image_start();
-    //direction_init();
+    direction_init();
 
 
     //start calibration
@@ -82,16 +82,9 @@ int main(void)
     set_led(LED7, 0);
     obj_det_init();
 
-
-
-    //messagebus_topic_t *prox_topic = messagebus_find_topic_blocking(&bus, "/proximity");
-    //proximity_msg_t prox_values;
-
-
-
     enum state {pointA, displacement, pointB};
     enum state order;
-    order = pointB;
+    order = pointA;
 
     int8_t counter_deceleration = 0;
     int8_t counter_small_acc = 0;
@@ -218,9 +211,12 @@ while(1){
 
     	turn_angle(save_return_angle);
     	// Drive distance in a straight line
+    	set_front_led(0);
+    	start_search();
+    	start_detection();
     	drive_distance(100);
-    	motor_stop();		// THIS WILL BE INCLUDED IN THE NEW MOTOR.C FILE FROM DOMINIK
 
+    	end_detection();
     	order = pointA;
     	counter_displacement = 0;		//somehow becomes negative a a certain point
     	set_x_acc_sign_displacement(0);
@@ -237,16 +233,10 @@ while(1){
     	set_led(LED7, 0);
     	chThdSleepMilliseconds(2000);
     }
-
-
-
-		//chThdSleepMilliseconds(10);
-
-
     chThdSleepMilliseconds(10);
 	} // END OF WHILE LOOP
 
-motor_stop();
+motors_stop();
 
 }
 

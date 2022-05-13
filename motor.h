@@ -18,6 +18,6 @@ void drive_steps(int32_t steps, enum dir direction);
 void motors_stop(void);
 void motors_reset_pos(void);
 void motors_drive_dir(enum dir direction, uint8_t fraction);
-void set_found_goal(uint8_t state);
+void set_found_goal(void);
 
 #endif /* MOTOR_C */

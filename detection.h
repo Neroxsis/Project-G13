@@ -15,5 +15,7 @@ void obj_det_init(void);
 uint8_t get_object_det(void);
 void reset_obj_det(void);
 void false_alarm(int32_t diff);
+void start_detection(void);
+void end_detection(void);
 
 #endif /* DETECTION_H */

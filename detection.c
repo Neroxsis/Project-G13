@@ -15,6 +15,7 @@
 #include <chprintf.h>
 
 static uint8_t object_detected = 0;
+static uint8_t detect = 0;
 
 /****************************Private Functions***************************/
 
@@ -28,7 +29,7 @@ static THD_FUNCTION(ThdObstacleDetection, arg) {
 
     //infinite loop
     while(1){
-    	while(!object_detected){
+    	while(!object_detected && detect){
     		// Test for object
     		if(get_calibrated_prox(FRONT_LEFT_IR_SENSOR) > IR_THRESHHOLD || get_calibrated_prox(FRONT_RIGHT_IR_SENSOR) > IR_THRESHHOLD){
     			object_detected = 1;
@@ -86,6 +87,14 @@ void reset_obj_det(void){
 	if(object_detected == 3){
 		object_detected = 0;
 	}
+}
+
+void start_detection(void){
+	detect = 1;
+}
+
+void end_detection(void){
+	detect = 0;
 }
 
 void false_alarm(int32_t diff){

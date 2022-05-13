@@ -35,7 +35,7 @@ static THD_FUNCTION(ProcessImage, arg) {
 	uint8_t image[2*IMAGE_BUFFER_SIZE] = {0};
 
 	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line 10 + 11 (minimum 2 lines because reasons)
-	po8030_advanced_config(FORMAT_RGB565, 0, 400, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	po8030_advanced_config(FORMAT_RGB565, 0, 450, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
@@ -70,7 +70,7 @@ void has_red(uint8_t* buffer){
 	mean_blue /= (IMAGE_BUFFER_SIZE/2);
 	if(mean_red > RED_TH && mean_blue < BLUE_TH){
 		set_front_led(1);
-		set_found_goal(1);
+		set_found_goal();
 		end_search();
 	}
 }

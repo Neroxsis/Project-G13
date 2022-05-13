@@ -13,8 +13,6 @@
 
 void direction_init(void);
 void set_picked_up(uint8_t picked_up_);
-uint8_t incline_detected(void);
-int16_t angle_to_gradient(void);
 float get_relative_rotation_x(void);
 float get_relative_rotation_y(void);
 float get_relative_rotation_z(void);
