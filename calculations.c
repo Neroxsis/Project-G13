@@ -12,8 +12,8 @@ static float cosine[91];
 // math.h uses radian: convert degrees to radian
 void lookup_init(void){
 	for(uint8_t i=0; i<91; i++){
-		sine[i] = sin(i*M_PI/180); 	// from math.h
-		cosine[i] = cos(i*M_PI/180);
+		sine[i] = sin(i*M_PI/PI_DEG); 	// from math.h
+		cosine[i] = cos(i*M_PI/PI_DEG);
 	}
 }
 

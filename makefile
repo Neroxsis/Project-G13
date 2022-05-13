@@ -14,6 +14,7 @@ CSRC += ./main.c \
 		./detection.c \
 		./motor.c \
 		./direction.c \
+		./process_image.c \
 
 #Header folders to include
 INCDIR += ./constants.h \

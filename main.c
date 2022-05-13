@@ -20,6 +20,7 @@
 #include <detection.h>
 #include "motor.h"
 #include <direction.h>
+#include <process_image.h>
 
 messagebus_t bus;
 MUTEX_DECL(bus_lock);
@@ -60,7 +61,8 @@ int main(void)
     set_body_led(0);
     set_front_led(0);
     lookup_init();
-    direction_init();
+    process_image_start();
+    //direction_init();
 
 
     //start calibration
@@ -79,7 +81,6 @@ int main(void)
     calibrate_gyro();
     set_led(LED7, 0);
     obj_det_init();
-    //thred init. GoalCalculatins
 
 
 
@@ -90,7 +91,7 @@ int main(void)
 
     enum state {pointA, displacement, pointB};
     enum state order;
-    order = pointA;
+    order = pointB;
 
     int8_t counter_deceleration = 0;
     int8_t counter_small_acc = 0;
