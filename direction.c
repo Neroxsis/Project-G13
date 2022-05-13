@@ -25,7 +25,6 @@
 
 extern messagebus_t bus;
 
-static imu_msg_t imu_values;
 static float relative_rotation_x = 0;
 static float relative_rotation_y = 0;
 static float relative_rotation_z = 0;
@@ -53,7 +52,7 @@ static int16_t save_return_angle = 0;
 
 
 static enum state {pointA, displacement, pointB};
-static enum state order;
+static enum state order = pointA;
 
 static THD_WORKING_AREA(waThdGoalCalculations, 1024);
 static THD_FUNCTION(ThdGoalCalculations, arg) {
@@ -76,13 +75,12 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 #define NINETY_DEGREE 90
 #define WAIT_TIME 1234
 #define ACTIVATION_TH 45245
-#define Z_ACC_THRESHOLD 1 //not yet calbibrated maybe even lower
-#define X_ACC_THRESHOLD 0.07  // NOT yet calibrated !!
-#define Y_ACC_THRESHOLD 0.07  // NOT yet calibrated !!
-#define ROTATION_THRESHOLD 0.001f  // NOT yet calibrated !!
-#define X_ROTATION_THRESHOLD 1.5  // NOT yet calibrated !!
-#define Y_ROTATION_THRESHOLD 1.5  // NOT yet calibrated !!
-#define SPEED_CORRECTION 100 // NOT yet calibrated !!
+#define X_ACC_THRESHOLD 0.07
+#define Y_ACC_THRESHOLD 0.07
+#define ROTATION_THRESHOLD 0.001f
+#define X_ROTATION_THRESHOLD 1.5
+#define Y_ROTATION_THRESHOLD 1.5
+#define SPEED_CORRECTION 100
 #define THRESHOLD_RETURN_ANGLE 0.2
 
 

@@ -62,7 +62,6 @@ int main(void)
     set_front_led(0);
     lookup_init();
     process_image_start();
-    direction_init();
 
 
     //start calibration
@@ -81,6 +80,7 @@ int main(void)
     calibrate_gyro();
     set_led(LED7, 0);
     obj_det_init();
+    direction_init();
 
 //    enum state {pointA, displacement, pointB};
 //    enum state order;
