@@ -20,6 +20,7 @@
 #include <detection.h>
 #include "motor.h"
 #include <direction.h>
+#include <process_image.h>
 
 messagebus_t bus;
 MUTEX_DECL(bus_lock);
@@ -56,7 +57,8 @@ int main(void)
     set_body_led(0);
     set_front_led(0);
     lookup_init();
-    direction_init();
+    process_image_start();
+    //direction_init();
 
 
     //start calibration
@@ -75,7 +77,6 @@ int main(void)
     calibrate_gyro();
     set_led(LED7, 0);
     obj_det_init();
-    //thred init. GoalCalculatins
 
 
     //messagebus_topic_t *prox_topic = messagebus_find_topic_blocking(&bus, "/proximity");
@@ -85,7 +86,7 @@ int main(void)
 
     enum state {pointA, displacement, pointB};
     enum state order;
-    order = pointA;
+    order = pointB;
 
     static uint8_t goal_reached = 0;
 
@@ -93,8 +94,6 @@ int main(void)
 
     //infinite loop
     while(1){ 			//while(order != pointB){
-
-    	clear_leds();
 
 //    	chprintf((BaseSequentialStream *)&SD3, "order = %d \r\n\n", order);
 //    	chprintf((BaseSequentialStream *)&SD3, "in_air = %d \r\n\n", in_air());
@@ -110,31 +109,24 @@ int main(void)
 
 
 
-    	chprintf((BaseSequentialStream *)&SD3, "relative_rotation = %.2f \r\n\n", get_relative_rotation());
-    	chprintf((BaseSequentialStream *)&SD3, "distance = %.2f \r\n\n", get_distance());
+//    	chprintf((BaseSequentialStream *)&SD3, "relative_rotation = %.2f \r\n\n", get_relative_rotation());
+//    	chprintf((BaseSequentialStream *)&SD3, "distance = %.2f \r\n\n", get_distance());
 
 
     	if(order == pointB && !goal_reached){
     		// First turn to destination
     	    //turn_angle(90);
     	   	// Drive distance in a straight line
-    	   	//drive_distance(get_distance());
+    		start_search();
+    	   	drive_distance(300);
     		//goal_reached = 1;
-    		set_led(LED1, 1);
+    		//set_led(LED1, 1);
+        	chThdSleepMilliseconds(5000);
+
     	}
-    	set_led(LED3, 1);
-
-
-
-
+    	//set_led(LED3, 1);
     }
-
-
-
-
-
-    motor_stop();
-    chThdSleepMilliseconds(10);
+    //motor_stop();
 
 }
 

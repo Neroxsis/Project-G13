@@ -15,7 +15,7 @@
 #define RIGHT_IR_SENSOR 2
 #define RIGHT_BACK_IR_SENSOR 3
 #define FRONT_LEFT_IR_SENSOR 7
-#define IR_THRESHHOLD 25
+#define IR_THRESHHOLD 100
 #define FALSE_ALARM 1000
 
 // no magic numbers
@@ -25,5 +25,9 @@
 // imu
 #define INCLINE_TH -0.5f
 #define DIVIDE_BYZ 0.1f
+
+// camera
+#define RED_TH 100
+#define BLUE_TH 10
 
 #endif /* CONSTANTS_H */

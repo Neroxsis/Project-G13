@@ -90,7 +90,7 @@ void reset_obj_det(void){
 
 void false_alarm(int32_t diff){
 	if(diff > FALSE_ALARM && object_detected == 1){
-		object_detected = 3;
+		object_detected = 4;
 		// indication for us
 		set_led(LED1, 1);
 		set_led(LED3, 1);

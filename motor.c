@@ -23,8 +23,10 @@
 #define TURN_SPEED 600
 #define DRIVE_SPEED 800
 #define EVADE_DISTANCE 4 //cm
+#define DIST_TO_GOAL 10 //cm
 
 static float diff_x = 0, diff_y = 0; // difference due to object in steps
+static uint8_t found_goal = 0;
 
 /******************************Private Functions********************************/
 int32_t evade_obj_alg(void){
@@ -39,7 +41,6 @@ int32_t evade_obj_alg(void){
 	do{
 		switch(get_object_det()){
 			case 0:
-				return old_pos; // definitely needs some calculations depending on the size of the object
 				break;
 			case 1:
 				//turn left slowly
@@ -92,16 +93,27 @@ int32_t evade_obj_alg(void){
 				alpha = (diff / 2) * (PI_DEG / 2) / (ONE_TURN_STEPS / 4);  // -> angle turned
 				break;
 
+			case 4:
+				// false alarm
+				motors_drive_dir(TURN_RIGHT, 2);
+				sign_of_diff = sign(diff);
+				while(get_object_det() == 3){
+					chThdSleepMilliseconds(10);
+					diff = right_motor_get_pos() - left_motor_get_pos();
+					if(sign_of_diff != sign(diff)){ // robot turned further right than initially -> passed simple object
+						reset_obj_det();
+					}
+				}
+				break;
+
 			default:
 				panic_handler("object_detection_value");
 				return 0;
 		}
 	}while(get_object_det());
-	steps = right_motor_get_pos() - steps; // subtract old count to get the distance
-	diff_x += get_sin(alpha) * steps; // calculate difference in x
-	diff_y += get_cos(alpha) * steps; // calculate difference in y
-
 	motors_drive_dir(FORWARDS, 1);
+	old_pos += diff_y;
+	diff_y = 0; // reset
 	return old_pos;
 }
 
@@ -114,15 +126,16 @@ void turn_angle(int16_t angle){
 
 	// Calculate angle in rotation of wheel in steps
 	angle_steps = ONE_TURN_STEPS * angle / (2*PI_DEG);
+	// define direction
 	enum dir direction = TURN_LEFT;
 	if(sign(angle_steps) < 0){
 		direction = TURN_RIGHT;
 	}
 	motors_drive_dir(direction, 1);
 
-	do{ // turn right or left
+	while(abs(angle_steps) > abs(right_motor_get_pos()) && !found_goal){
 		chThdSleepMilliseconds(20);
-	}while((abs(angle_steps) > abs(right_motor_get_pos())));
+	}
 	motors_stop();
 }
 
@@ -135,29 +148,35 @@ void drive_distance(float distance){
 	distance_steps = distance * ONE_TURN_STEPS / (WHEEL_PERIM * 10); // *10 as distance is in mm and perim in cm
 	drive_steps(distance_steps, FORWARDS);
 
-	// if an object was in the way we have a displacement in x and y to the goal
-	if(diff_y != 0){
-		// saved opposite to coord-system
-		// +y means the robot is too far and needs to drive back a bit
-		enum dir direction = BACKWARDS;
-		if(diff_y < 0){
-			direction = FORWARDS;
-		}
-		drive_steps((int)diff_y, direction);
-	}
-
-	// first, turn 90° degree to the right
+	// first, turn 90° degree clockwise
 	// drive forwards or backwards depending on the sign, +x means the robot is too
 	// far left and because of the +90° turn needs to drive forward
 	if(diff_x != 0){
-		turn_angle(90);
+		turn_angle(-90);
 
 		enum dir direction = FORWARDS;
-		if(diff_y < 0){
+		if(diff_x < 0){
 			direction = BACKWARDS;
 		}
 		drive_steps((int)diff_x, direction);
+		diff_x = 0; // reset
 	}
+	motors_stop();
+
+	// if the robot found the goal platform
+	if(found_goal){
+		found_goal = 0;
+		distance_steps = DIST_TO_GOAL * ONE_TURN_STEPS / WHEEL_PERIM;
+		drive_steps(distance_steps, FORWARDS);
+	}else{ // if not turn on spot
+		turn_angle(360);
+		if(found_goal){
+			found_goal = 0;
+			distance_steps = DIST_TO_GOAL * ONE_TURN_STEPS / WHEEL_PERIM;
+			drive_steps(distance_steps, FORWARDS);
+		}
+	}
+	motors_stop();
 }
 
 //------------------------------------------------------------------
@@ -170,12 +189,12 @@ void drive_steps(int32_t steps, enum dir direction){
 	motors_drive_dir(direction, 1);
 
 	// wait and check every 20 milliseconds if goal is reached or object is detected
-	do{
+	while(abs(steps) > abs(right_motor_get_pos()) && !found_goal){
 		chThdSleepMilliseconds(20);
-	    if(get_object_det()){
+	    if(get_object_det() && !found_goal){
 	    	right_motor_set_pos(evade_obj_alg());
 	    }
-	}while((abs(steps) > abs(right_motor_get_pos())));
+	}
 	motors_stop();
 }
 
@@ -216,4 +235,10 @@ void motors_drive_dir(enum dir direction, uint8_t fraction){
 		default:
 			break;
 	}
+}
+
+
+// 0 = searching, higher = found
+void set_found_goal(uint8_t state){
+	found_goal = state;
 }
