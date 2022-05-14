@@ -97,12 +97,12 @@ int main(void)
 
 
 			// turn towards starting point
-			turn_angle(get_save_return_angle());
+			//turn_angle(get_save_return_angle());
 			// Drive distance in a straight line
 			set_front_led(0);
 			//start_search();
 			//start_detection();
-			drive_distance(100);
+			drive_distance(get_distance());
 
 			//end_detection();
 			set_counter_displacement(0);	//do this in direction.c
