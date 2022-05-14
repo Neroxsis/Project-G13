@@ -88,13 +88,13 @@ while(1){
 
 
     if(check_order_pointB()){
-    	 set_led(LED1, 1);
-    	 chThdSleepMilliseconds(500);
-    	 set_led(LED3, 1);
-    	 chThdSleepMilliseconds(500);
-    	 set_led(LED5, 1);
-    	 chThdSleepMilliseconds(500);
-    	 set_led(LED7, 1);
+    	set_led(LED1, 1);
+    	chThdSleepMilliseconds(500);
+    	set_led(LED3, 1);
+    	chThdSleepMilliseconds(500);
+    	set_led(LED5, 1);
+    	chThdSleepMilliseconds(500);
+    	set_led(LED7, 1);
 
 
     	turn_angle(get_save_return_angle());

@@ -77,10 +77,14 @@ void obj_det_init(void){
 	chThdCreateStatic(waThdObstacleDetection, sizeof(waThdObstacleDetection), NORMALPRIO, ThdObstacleDetection, NULL);
 }
 
-// returns object_detected which varies between 0-3
+//-------------------------------------------------------------------------
+
+// returns object_detected which varies between 0-4 used by motor object evade algo
 uint8_t get_object_det(void){
 	return object_detected;
 }
+
+//-------------------------------------------------------------------------
 
 // sets object_detected back to 0 only if it's in phase 3 of the algorithm
 void reset_obj_det(void){
@@ -88,6 +92,8 @@ void reset_obj_det(void){
 		object_detected = 0;
 	}
 }
+
+//-------------------------------------------------------------------------
 
 void start_detection(void){
 	detect = 1;
@@ -97,6 +103,9 @@ void end_detection(void){
 	detect = 0;
 }
 
+//-----------------------------------------------------------------
+
+// set object_detected to 4 so that the motor turns back, if it is a false alarm
 void false_alarm(int32_t diff){
 	if(diff > FALSE_ALARM && object_detected == 1){
 		object_detected = 4;

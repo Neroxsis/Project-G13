@@ -136,18 +136,3 @@ int8_t signf(float nb){
 		return 0;
 	}
 }
-
-
-//-------------------------------------------------------------------------------------------
-
-
-// sign for short integers
-int8_t signs(int8_t nb){
-	if(nb < 0){
-		return -1;
-	}else if(nb > 0){
-		return 1;
-	}else{
-		return 0;
-	}
-}
