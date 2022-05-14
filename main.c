@@ -113,6 +113,7 @@ int main(void)
 			drive_distance(get_distance());
 
 			end_detection();
+			set_front_led(0);
 			set_counter_displacement(0);	//do this in direction.c
 			set_x_acc_sign_displacement(0);
 			set_y_acc_sign_displacement(0);
