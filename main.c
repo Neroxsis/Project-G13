@@ -26,10 +26,6 @@ messagebus_t bus;
 MUTEX_DECL(bus_lock);
 CONDVAR_DECL(bus_condvar);
 
-
-//static uint8_t picked_up = 0;
-
-
 static void serial_start(void)
 {
 	static SerialConfig ser_cfg = {
@@ -83,44 +79,50 @@ int main(void)
     direction_init();
 
 
-//infinite loop
-while(1){
+	//infinite loop
+	while(1){
+		chprintf((BaseSequentialStream *)&SD3, "relative rotation z =%.2f", get_relative_rotation_z());
+		if(check_order_pointB()){
+			 set_led(LED1, 1);
+			 chThdSleepMilliseconds(500);
+			 set_led(LED3, 1);
+			 chThdSleepMilliseconds(500);
+			 set_led(LED5, 1);
+			 chThdSleepMilliseconds(500);
+			 set_led(LED7, 1);
+
+			 chprintf((BaseSequentialStream *)&SD3, "relative rotation z =%.2f", get_relative_rotation_z());
+			 chprintf((BaseSequentialStream *)&SD3, "get return angle =%.2f", get_save_return_angle());
 
 
-    if(check_order_pointB()){
-    	 set_led(LED1, 1);
-    	 chThdSleepMilliseconds(500);
-    	 set_led(LED3, 1);
-    	 chThdSleepMilliseconds(500);
-    	 set_led(LED5, 1);
-    	 chThdSleepMilliseconds(500);
-    	 set_led(LED7, 1);
 
+			// turn towards starting point
+			turn_angle(get_save_return_angle());
+			// Drive distance in a straight line
+			set_front_led(0);
+			//start_search();
+			//start_detection();
+			drive_distance(100);
 
-    	turn_angle(get_save_return_angle());
-    	// Drive distance in a straight line
-    	set_front_led(0);
-    	start_search();
-    	start_detection();
-    	drive_distance(100);
+			//end_detection();
+			set_counter_displacement(0);	//do this in direction.c
+			set_x_acc_sign_displacement(0);
+			set_y_acc_sign_displacement(0);
+			set_x_acc_displacement(0);
+			//set_relative_rotation_z(0);
+			//set_save_return_angle(0);
 
-    	end_detection();
-    	set_order(0);  // 0 = pointA -> Magic number
-    	set_counter_displacement(0);	//do this in direction.c
-    	set_x_acc_sign_displacement(0);
-    	set_y_acc_sign_displacement(0);
-    	set_x_acc_displacement(0);
+			set_led(LED1, 0);
+			chThdSleepMilliseconds(500);
+			set_led(LED3, 0);
+			chThdSleepMilliseconds(500);
+			set_led(LED5, 0);
+			chThdSleepMilliseconds(500);
+			set_led(LED7, 0);
 
+			set_order(0);  // 0 = pointA -> Magic number
 
-    	set_led(LED1, 0);
-    	chThdSleepMilliseconds(500);
-    	set_led(LED3, 0);
-    	chThdSleepMilliseconds(500);
-    	set_led(LED5, 0);
-    	chThdSleepMilliseconds(500);
-    	set_led(LED7, 0);
-    	chThdSleepMilliseconds(2000);
-    }
+		}
     chThdSleepMilliseconds(10);
 	} // END OF WHILE LOOP
 

@@ -25,16 +25,9 @@
 
 extern messagebus_t bus;
 
-static float relative_rotation_x = 0;
-static float relative_rotation_y = 0;
+
 static float relative_rotation_z = 0;
 static float distance = 0;
-
-static float x_speed = 0;  // mm/s
-static float y_speed = 0;  // mm/s
-
-static float x_position = 0;
-static float y_position = 0;
 
 static float x_axis_acc = 0;
 static float y_axis_acc = 0;
@@ -63,10 +56,8 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
     imu_msg_t imu_values;
     messagebus_topic_t *imu_topic = messagebus_find_topic_blocking(&bus, "/imu");
 
-    float period = 0.012; // because float * float faster than float * int
     float period_rot = 0.012;
     order = pointA;
-    int8_t counter_deceleration = 0;
     int8_t counter_small_acc = 0;
 
 
@@ -113,10 +104,9 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 		 // pointB if robot is put down
 		 if(order != pointB){
 
-
 			 //pick up
-			 if (fabs(imu_values.acceleration[X_AXIS]) >= X_ACC_THRESHOLD &&
-							 fabs(imu_values.acceleration[Y_AXIS]) >= Y_ACC_THRESHOLD){
+			 if ((imu_values.acceleration[Z_AXIS]+GRAVITY) >= Z_ACC_THRESHOLD ||
+					(imu_values.acceleration[Z_AXIS]+GRAVITY) <= -Z_ACC_THRESHOLD){
 				picked_up = 1;
 				set_body_led(picked_up);
 				set_picked_up(picked_up);
@@ -148,11 +138,7 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 		 if(order == displacement){
 		   	counter_displacement ++;
 		   	if(counter_displacement == 30){
-		    	x_acc_sign_displacement = signf(imu_values.acceleration[X_AXIS]);
-		    	x_acc_displacement = imu_values.acceleration[X_AXIS];
-		    	y_acc_displacement = imu_values.acceleration[Y_AXIS];
-		    	y_acc_sign_displacement = signf(imu_values.acceleration[Y_AXIS]);
-		    	save_return_angle = return_angle(get_x_axis_acc(), get_y_axis_acc(), get_relative_rotation_z());
+		    	save_return_angle = return_angle(imu_values.acceleration[X_AXIS], imu_values.acceleration[Y_AXIS], relative_rotation_z);
 		   	}
 		 }//end if
 
@@ -170,59 +156,22 @@ void set_picked_up(uint8_t picked_up_){
 	picked_up = picked_up_;
 }
 
-float get_relative_rotation_x(void){
-	return relative_rotation_x;
-}
-
-float get_relative_rotation_y(void){
-	return relative_rotation_y;
-}
-
 float get_relative_rotation_z(void){
 	return relative_rotation_z;
+}
+
+void set_relative_rotation_z(float rotation){
+	relative_rotation_z = rotation;
 }
 
 float get_distance(void){
 	return distance;
 }
 
-float get_x_speed(void){
-	return x_speed;
-}
-
-float get_y_speed(void){
-	return y_speed;
-}
-
-float get_x_position(void){
-	return x_position;
-}
-
 float get_z_axis_acc(void){
 	return z_axis_acc;
 }
 
-float get_y_axis_acc(void){
-	return y_axis_acc;
-}
-
-float get_x_axis_acc(void){
-	return x_axis_acc;
-}
-
-float get_y_position(void){
-	return y_position;
-}
-
-
-//might not need this one
-int8_t get_x_acc_sign_displacement(void){
-	return x_acc_sign_displacement;
-}
-
-void set_x_acc_sign_displacement(int8_t x_acc_sign_displacement_){
-	x_acc_sign_displacement = x_acc_sign_displacement_;
-}
 
 float get_x_acc_displacement(void){
 	return x_acc_displacement;
@@ -240,23 +189,21 @@ void set_y_acc_displacement(float y_acc_displacement_){
 	y_acc_displacement = y_acc_displacement_;
 }
 
-int8_t get_y_acc_sign_displacement(void){
-	return y_acc_sign_displacement;
-}
-
 float get_print_theta(void){
 	return print_theta;
-}
-
-void set_y_acc_sign_displacement(int8_t y_acc_sign_displacement_){
-	y_acc_sign_displacement = y_acc_sign_displacement_;
 }
 
 uint8_t get_picked_up(void){
 	return picked_up;
 }
 
+void set_x_acc_sign_displacement(int8_t sign){
+	x_acc_sign_displacement = sign;
+}
 
+void set_y_acc_sign_displacement(int8_t sign){
+	y_acc_sign_displacement = sign;
+}
 
 enum state get_order(void){
 	return order;
@@ -293,31 +240,44 @@ int8_t check_order_pointB(void){
 }
 
 
-// phi = relative_rotation_z
+// phi = relative_rotation_z	-> does NOT work yet
 //or I could just take the acc during the displacement and then take the sign here...
 //rethink the stuff I'm giving as parameters ... !!
 float return_angle(float x_acc, float y_acc, float phi){
 	float theta = 0;
+	int8_t THRESHOLD = 0.8; //still has to be calibrated
 
-	theta = atan2(y_acc_displacement, x_acc_displacement)*PI_DEG/M_PI;
+	theta = atan2(y_acc, x_acc)*PI_DEG/M_PI;
 	print_theta = theta;
 
-	if(x_acc_sign_displacement == 1){
-
-		if(y_acc_sign_displacement == 1){	// quadrant I  OK
-			return -90 + theta;
-		} else {							// quadrant IV
-			return - 180 - theta;
+	if(fabs(x_acc) <= THRESHOLD){
+		if(signf(y_acc) == 1){
+			return 0.0;
+		}else{
+			return 180.0;
 		}
-	}
+	}else if(fabs(y_acc) <= THRESHOLD){
+		if(signf(x_acc) == 1){
+			return -90.0;
+		}else{
+			return 90.0;
+		}
+	}else{
 
+		if(signf(x_acc) == 1){
+			if(signf(y_acc) == 1){	// quadrant I  OK
+				return -90 + theta + phi;	//-phi
+			} else {							// quadrant IV
+				return - 180 - theta + phi;
+			}
+		}
 
-	if(x_acc_sign_displacement == -1){
-
-		if(y_acc_sign_displacement == 1){	// quadrant II  OK
-			return -90 + theta;
-		} else {							// quadrant III Wrong: N, gernerally maybe a bit off
-			return 90 + (180 + theta); // used to be -
+		if(signf(x_acc) == -1){
+			if(signf(y_acc) == 1){	// quadrant II  OK
+				return -90 + theta - phi;
+			} else {							// quadrant III Wrong: N, gernerally maybe a bit off
+				return 90 + (180 + theta) - phi; // used to be -
+			}
 		}
 	}
 
