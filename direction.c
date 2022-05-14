@@ -27,7 +27,7 @@ extern messagebus_t bus;
 
 
 static float relative_rotation_z = 0;
-static float distance = 0;
+static int16_t distance = 0;
 
 static float x_axis_acc = 0;
 static float y_axis_acc = 0;
@@ -40,11 +40,9 @@ static float print_theta = 0;
 
 static uint8_t picked_up = 0;
 static int16_t counter_displacement = 0;
-static int16_t save_return_angle = 0;
 
 static enum state {pointA, displacement, pointB};
 static enum state order = pointA;
-
 
 static THD_WORKING_AREA(waThdGoalCalculations, 1024);
 static THD_FUNCTION(ThdGoalCalculations, arg) {
@@ -53,6 +51,7 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
     (void)arg;
 
     systime_t time;
+    systime_t time_of_flight = chVTGetSystemTime();
     imu_msg_t imu_values;
     messagebus_topic_t *imu_topic = messagebus_find_topic_blocking(&bus, "/imu");
 
@@ -87,63 +86,67 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 		}
 
 
+
 		// ----------------------------------------------------------------------
 		//	Determines if robot is picked up and then turns on body lights
 		// doesn't work anymore if u delete the set body led in the for loops
 
 		// checks if robot is on the ground
-		 if (fabs(imu_values.acceleration[Z_AXIS] + GRAVITY) < Z_ACC_THRESHOLD){
-		 	counter_small_acc++;
-		 	if(counter_small_acc == 5){
-		 		picked_up = 0;
-		 		set_body_led(picked_up);
-		 	}
-		 }
+
+
+		 //  reset counter !!
+		 // I prob don't need that
 
 
 		 // pointB if robot is put down
 		 if(order != pointB){
-
 			 //pick up
-			 if ((imu_values.acceleration[Z_AXIS]+GRAVITY) >= Z_ACC_THRESHOLD ||
-					(imu_values.acceleration[Z_AXIS]+GRAVITY) <= -Z_ACC_THRESHOLD){
+			 if (((imu_values.acceleration[Z_AXIS]+GRAVITY) >= Z_ACC_THRESHOLD ||
+					(imu_values.acceleration[Z_AXIS]+GRAVITY) <= -Z_ACC_THRESHOLD) &&
+					(imu_values.acceleration[X_AXIS] >= X_ACC_THRESHOLD ||
+						imu_values.acceleration[X_AXIS] >= X_ACC_THRESHOLD)){
 				picked_up = 1;
+				if(order == pointA){
+					time_of_flight = chVTGetSystemTime(); // save time of departure
+				}
 				set_body_led(picked_up);
-				set_picked_up(picked_up);
 			 }
 
-			 // put down
-			 if (fabs(imu_values.acceleration[X_AXIS]) <= X_ACC_THRESHOLD &&
-					 fabs(imu_values.acceleration[Y_AXIS]) <= Y_ACC_THRESHOLD){
+			// put down
+			if (fabs(imu_values.acceleration[X_AXIS]) <= X_ACC_THRESHOLD &&
+				fabs(imu_values.acceleration[Y_AXIS]) <= Y_ACC_THRESHOLD){
 				picked_up = 0;
+				if(order == displacement){
+					time_of_flight = chVTGetSystemTime() - time_of_flight; // duration of flight in System ticks
+#define SPEED_MMPCS 3 // 300 mm per s or 3 mm per cs (10^-2 s)
+					distance = ST2MS(time_of_flight)/10 * SPEED_MMPCS;
+				}
 				set_body_led(picked_up);
 				set_picked_up(picked_up);
-			 }
+			}
 
-			 // pointB if robot is put down
-			 if(order != pointB){
-				 if (picked_up){
-					order = displacement;
-				 } else {
-					if (order == displacement){
-						order = pointB;
-						picked_up = 0; //
-					}
-				 }
-			 }
-		 }
+			// pointB if robot is put down
 
+			if (picked_up){
+				order = displacement;
+			} else {
+				if (order == displacement){
+					order = pointB;
+				}
+			}
+		}
 
-		 //return angle is calculated here
-		 if(order == displacement){
+		//return angle is calculated here
+		if(order == displacement){
 		   	counter_displacement ++;
 		   	if(counter_displacement == 30){
-		    	save_return_angle = return_angle(imu_values.acceleration[X_AXIS], imu_values.acceleration[Y_AXIS], relative_rotation_z);
+		   		x_acc_displacement = imu_values.acceleration[X_AXIS];
+		   		y_acc_displacement = imu_values.acceleration[Y_AXIS];
+		    	//save_return_angle = return_angle(imu_values.acceleration[X_AXIS], imu_values.acceleration[Y_AXIS]);
 		   	}
-		 }//end if
+		}//end if
 
 		 chThdSleepUntilWindowed(time, time + MS2ST(12));	// IMU reads new values every 250 Hz -> Source CITE !!!
-
 
     }
 }
@@ -164,7 +167,7 @@ void set_relative_rotation_z(float rotation){
 	relative_rotation_z = rotation;
 }
 
-float get_distance(void){
+int16_t get_distance(void){
 	return distance;
 }
 
@@ -215,14 +218,6 @@ void set_order(int8_t i){
 	if (i==2){order=pointB;}
 }
 
-float get_save_return_angle(void){
-	return save_return_angle;
-}
-
-void set_save_return_angle(float angle){
-	save_return_angle = angle;
-}
-
 int16_t get_counter_displacement(void){
 	return counter_displacement;
 }
@@ -239,44 +234,55 @@ int8_t check_order_pointB(void){
 	}
 }
 
+float get_x_acc(void){
+	return x_axis_acc;
+}
+float get_y_acc(void){
+	return y_axis_acc;
+}
+
+
 
 // phi = relative_rotation_z	-> does NOT work yet
 //or I could just take the acc during the displacement and then take the sign here...
 //rethink the stuff I'm giving as parameters ... !!
-float return_angle(float x_acc, float y_acc, float phi){
-	float theta = 0;
-	int8_t THRESHOLD = 0.8; //still has to be calibrated
+float return_angle(float x_acc, float y_acc, float angle){
+	int16_t theta = 0;
+	float THRESHOLD = 0.08; //still has to be calibrated
 
-	theta = atan2(y_acc, x_acc)*PI_DEG/M_PI;
+	theta = (int16_t)(atan2(y_acc, x_acc)*PI_DEG/M_PI);
 	print_theta = theta;
 
+	//if distance << -> skip this step
+
+
 	if(fabs(x_acc) <= THRESHOLD){
-		if(signf(y_acc) == 1){
-			return 0.0;
+		if(y_acc > 0){
+			return 0.0 - angle;
 		}else{
-			return 180.0;
+			return 180.0 - angle;
 		}
 	}else if(fabs(y_acc) <= THRESHOLD){
-		if(signf(x_acc) == 1){
-			return -90.0;
+		if(x_acc > 0){
+			return -90.0 - angle;
 		}else{
-			return 90.0;
+			return 90.0 - angle;
 		}
 	}else{
 
-		if(signf(x_acc) == 1){
-			if(signf(y_acc) == 1){	// quadrant I  OK
-				return -90 + theta + phi;	//-phi
+		if(x_acc > 0){
+			if(y_acc > 0){	// quadrant I  OK
+				return -90 + theta - angle;
 			} else {							// quadrant IV
-				return - 180 - theta + phi;
+				return - 180 - theta + angle;
 			}
 		}
 
-		if(signf(x_acc) == -1){
-			if(signf(y_acc) == 1){	// quadrant II  OK
-				return -90 + theta - phi;
-			} else {							// quadrant III Wrong: N, gernerally maybe a bit off
-				return 90 + (180 + theta) - phi; // used to be -
+		if(x_acc < 0){
+			if(y_acc > 0){	// quadrant II  OK
+				return -90 + theta - angle;
+			} else {							// quadrant III
+				return 90 + (180 + theta) - angle;
 			}
 		}
 	}

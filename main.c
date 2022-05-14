@@ -81,7 +81,9 @@ int main(void)
 
 	//infinite loop
 	while(1){
-		chprintf((BaseSequentialStream *)&SD3, "relative rotation z =%.2f", get_relative_rotation_z());
+		chprintf((BaseSequentialStream *)&SD3, "relative rotation z =%.2f \r\n\n", get_relative_rotation_z());
+		chprintf((BaseSequentialStream *)&SD3, "x_acc =%.2f \r\n\n", get_x_acc());
+		chprintf((BaseSequentialStream *)&SD3, "x_acc =%.2f \r\n\n", get_y_acc());
 		if(check_order_pointB()){
 			 set_led(LED1, 1);
 			 chThdSleepMilliseconds(500);
@@ -91,34 +93,56 @@ int main(void)
 			 chThdSleepMilliseconds(500);
 			 set_led(LED7, 1);
 
-			 chprintf((BaseSequentialStream *)&SD3, "relative rotation z =%.2f", get_relative_rotation_z());
-			 chprintf((BaseSequentialStream *)&SD3, "get return angle =%.2f", get_save_return_angle());
+
+
+//			 chprintf((BaseSequentialStream *)&SD3, "sign x_acc =%d \r\n\n", signf(get_x_acc_displacement()));
+//			 chprintf((BaseSequentialStream *)&SD3, "sign y_acc =%d \r\n\n", signf(get_y_acc_displacement()));
+//			 chprintf((BaseSequentialStream *)&SD3, "relative rotation z =%.2f \r\n\n", get_relative_rotation_z());
+//			 chprintf((BaseSequentialStream *)&SD3, "return angle =%.2f \r\n\n", return_angle(get_x_acc_displacement(), get_y_acc_displacement(), get_relative_rotation_z()));
+//			 chprintf((BaseSequentialStream *)&SD3, "theta =%.2f \r\n\n", get_print_theta());
 
 
 
 			// turn towards starting point
-			turn_angle(get_save_return_angle());
+			turn_angle(return_angle(get_x_acc_displacement(), get_y_acc_displacement(), get_relative_rotation_z()));
+
 			// Drive distance in a straight line
 			set_front_led(0);
-			//start_search();
-			//start_detection();
-			drive_distance(100);
+			start_search();
+			start_detection();
+			drive_distance(get_distance());
 
-			//end_detection();
+			end_detection();
 			set_counter_displacement(0);	//do this in direction.c
 			set_x_acc_sign_displacement(0);
 			set_y_acc_sign_displacement(0);
 			set_x_acc_displacement(0);
-			//set_relative_rotation_z(0);
-			//set_save_return_angle(0);
+			set_relative_rotation_z(0);
 
 			set_led(LED1, 0);
-			chThdSleepMilliseconds(500);
+			chThdSleepMilliseconds(200);
 			set_led(LED3, 0);
-			chThdSleepMilliseconds(500);
+			chThdSleepMilliseconds(200);
 			set_led(LED5, 0);
-			chThdSleepMilliseconds(500);
+			chThdSleepMilliseconds(200);
 			set_led(LED7, 0);
+			chThdSleepMilliseconds(200);
+			set_led(LED1, 1);
+			chThdSleepMilliseconds(200);
+			set_led(LED3, 1);
+			chThdSleepMilliseconds(200);
+			set_led(LED5, 1);
+			chThdSleepMilliseconds(200);
+			set_led(LED7, 1);
+			chThdSleepMilliseconds(200);
+			set_led(LED1, 0);
+			chThdSleepMilliseconds(200);
+			set_led(LED3, 0);
+			chThdSleepMilliseconds(200);
+			set_led(LED5, 0);
+			chThdSleepMilliseconds(200);
+			set_led(LED7, 0);
+
 
 			set_order(0);  // 0 = pointA -> Magic number
 

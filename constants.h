@@ -33,6 +33,6 @@
 #define GRAVITY 9.81
 
 // main
-#define Z_ACC_THRESHOLD 0.5 //not yet calbibrated maybe even lower
+#define Z_ACC_THRESHOLD 2 //not yet calbibrated maybe even lower
 
 #endif /* CONSTANTS_H */
