@@ -100,7 +100,7 @@ int main(void)
 
 			// Drive distance in a straight line
 			set_front_led(0);
-			//start_search();
+			start_search();
 			start_detection();
 			drive_distance(get_distance());
 
