@@ -27,7 +27,7 @@ extern messagebus_t bus;
 
 
 static float relative_rotation_z = 0;
-static float distance = 0;
+static int16_t distance = 0;
 
 static float x_axis_acc = 0;
 static float y_axis_acc = 0;
@@ -40,11 +40,9 @@ static float print_theta = 0;
 
 static uint8_t picked_up = 0;
 static int16_t counter_displacement = 0;
-static float save_return_angle = 0;
 
 static enum state {pointA, displacement, pointB};
 static enum state order = pointA;
-
 
 static THD_WORKING_AREA(waThdGoalCalculations, 1024);
 static THD_FUNCTION(ThdGoalCalculations, arg) {
@@ -53,6 +51,7 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
     (void)arg;
 
     systime_t time;
+    systime_t time_of_flight = chVTGetSystemTime();
     imu_msg_t imu_values;
     messagebus_topic_t *imu_topic = messagebus_find_topic_blocking(&bus, "/imu");
 
@@ -107,42 +106,47 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 					(imu_values.acceleration[X_AXIS] >= X_ACC_THRESHOLD ||
 						imu_values.acceleration[X_AXIS] >= X_ACC_THRESHOLD)){
 				picked_up = 1;
+				if(order == pointA){
+					time_of_flight = chVTGetSystemTime(); // save time of departure
+				}
 				set_body_led(picked_up);
 			 }
 
-			 // put down
-			 if (fabs(imu_values.acceleration[X_AXIS]) <= X_ACC_THRESHOLD &&
-					 fabs(imu_values.acceleration[Y_AXIS]) <= Y_ACC_THRESHOLD){
+			// put down
+			if (fabs(imu_values.acceleration[X_AXIS]) <= X_ACC_THRESHOLD &&
+				fabs(imu_values.acceleration[Y_AXIS]) <= Y_ACC_THRESHOLD){
 				picked_up = 0;
+				if(order == displacement){
+					time_of_flight = chVTGetSystemTime() - time_of_flight; // duration of flight in System ticks
+#define SPEED_MMPCS 3 // 300 mm per s or 3 mm per cs (10^-2 s)
+					distance = ST2MS(time_of_flight)/10 * SPEED_MMPCS;
+				}
 				set_body_led(picked_up);
-			 }
+				set_picked_up(picked_up);
+			}
 
-			 // pointB if robot is put down
-			 if(order != pointB){
-				 if (picked_up){
-					order = displacement;
-				 } else {
-					if (order == displacement){
-						order = pointB;
-						picked_up = 0; //
-					}
-				 }
-			 }
-		 }
+			// pointB if robot is put down
 
+			if (picked_up){
+				order = displacement;
+			} else {
+				if (order == displacement){
+					order = pointB;
+				}
+			}
+		}
 
-		 //return angle is calculated here
-		 if(order == displacement){
+		//return angle is calculated here
+		if(order == displacement){
 		   	counter_displacement ++;
 		   	if(counter_displacement == 30){
 		   		x_acc_displacement = imu_values.acceleration[X_AXIS];
 		   		y_acc_displacement = imu_values.acceleration[Y_AXIS];
 		    	//save_return_angle = return_angle(imu_values.acceleration[X_AXIS], imu_values.acceleration[Y_AXIS]);
 		   	}
-		 }//end if
+		}//end if
 
 		 chThdSleepUntilWindowed(time, time + MS2ST(12));	// IMU reads new values every 250 Hz -> Source CITE !!!
-
 
     }
 }
@@ -163,7 +167,7 @@ void set_relative_rotation_z(float rotation){
 	relative_rotation_z = rotation;
 }
 
-float get_distance(void){
+int16_t get_distance(void){
 	return distance;
 }
 

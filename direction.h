@@ -15,7 +15,7 @@ void direction_init(void);
 void set_picked_up(uint8_t picked_up_);
 float get_relative_rotation_z(void);
 void set_relative_rotation_z(float rotation);
-float get_distance(void);
+int16_t get_distance(void);
 float get_z_axis_acc(void);
 float return_angle(float x, float y, float angle);
 

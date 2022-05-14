@@ -106,12 +106,11 @@ int main(void)
 			// turn towards starting point
 			turn_angle(return_angle(get_x_acc_displacement(), get_y_acc_displacement(), get_relative_rotation_z()));
 
-			chThdSleepMilliseconds(500);
 			// Drive distance in a straight line
 			set_front_led(0);
 			//start_search();
 			//start_detection();
-			//drive_distance(100);
+			drive_distance(get_distance());
 
 			//end_detection();
 			set_counter_displacement(0);	//do this in direction.c
