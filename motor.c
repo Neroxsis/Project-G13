@@ -19,7 +19,7 @@
 #define TURN_SPEED 600
 #define DRIVE_SPEED 800
 #define EVADE_DISTANCE 4 //cm
-#define DIST_TO_GOAL 10 //cm
+#define DIST_TO_GOAL 20 //cm
 
 static float diff_x = 0, diff_y = 0; // difference due to object in steps
 static uint8_t found_goal = 0;

@@ -81,9 +81,9 @@ uint8_t get_object_det(void){
 
 //-------------------------------------------------------------------------
 
-// sets object_detected back to 0 only if it's in phase 3 of the algorithm
+// sets object_detected back to 0 only if it's in phase 3 or 4 (false alarm) of the algorithm
 void reset_obj_det(void){
-	if(object_detected == 3){
+	if(object_detected == 3 || object_detected == 4){
 		object_detected = 0;
 	}
 }

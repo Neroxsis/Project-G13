@@ -18,6 +18,7 @@
 static uint8_t search = 0;
 
 void has_red(uint8_t* buffer);
+void has_red2(uint8_t* buffer);
 
 static THD_WORKING_AREA(waProcessImage, 1024);
 static THD_FUNCTION(ProcessImage, arg) {
@@ -28,8 +29,8 @@ static THD_FUNCTION(ProcessImage, arg) {
 	uint8_t *img_buff_ptr;
 	uint8_t image[IMAGE_BUFFER_SIZE] = {0};
 
-	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line 450 + 451 (bottom part of camera) (minimum 2 lines because reasons)
-	po8030_advanced_config(FORMAT_RGB565, 0, 450, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
+	//Takes pixels 0 to IMAGE_BUFFER_SIZE of the line 400 + 401 (bottom part of camera) (minimum 2 lines because reasons)
+	po8030_advanced_config(FORMAT_RGB565, 0, 400, IMAGE_BUFFER_SIZE, 2, SUBSAMPLING_X1, SUBSAMPLING_X1);
 	dcmi_enable_double_buffering();
 	dcmi_set_capture_mode(CAPTURE_ONE_SHOT);
 	dcmi_prepare();
