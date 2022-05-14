@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <arm_math.h>
 #include <constants.h>
 #include <calculations.h>

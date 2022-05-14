@@ -50,6 +50,14 @@
 #define SPEED_MMPCS 3 // 300 mm per s or 3 mm per cs (10^-2 s)
 #define DISTANCE_THRESHOLD 20.0f //mm
 
+//motor
+#define ONE_TURN_STEPS 1200
+#define WHEEL_PERIM 13 //cm
+#define TURN_SPEED 800
+#define DRIVE_SPEED 900
+#define EVADE_DISTANCE 4 //cm
+#define DIST_TO_GOAL 20 //cm
+
 // main
 #define pointA_int 0
 

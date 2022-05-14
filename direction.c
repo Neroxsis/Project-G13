@@ -133,6 +133,7 @@ int8_t check_order_pointB(void){
 void reset_direction(void){
 	counter_displacement = 0;
 	x_acc_displacement = 0;
+	y_acc_displacement = 0;
 	relative_rotation_z = 0;
 }
 

@@ -82,24 +82,23 @@ int main(void)
 	//infinite loop
 	while(1){
 		if(check_order_pointB()){
-			 set_led(LED1, 1);
-			 chThdSleepMilliseconds(500);
-			 set_led(LED3, 1);
-			 chThdSleepMilliseconds(500);
-			 set_led(LED5, 1);
-			 chThdSleepMilliseconds(500);
-			 set_led(LED7, 1);
+			set_leds1357(1);
+			set_front_led(0);
 
 			// turn towards starting point
 			turn_angle(get_angle());
-			// Drive distance in a straight line
-			set_front_led(0);
+
+			// placed down -> enable object detection and image processing
 			start_search();
 			start_detection();
+
+			// Drive distance in a straight line
 			drive_distance(get_distance());
 
+			// stop object detection
 			end_detection();
 
+			// signal for us
 			set_leds1357(0);
 			set_leds1357(1);
 			set_leds1357(0);
@@ -107,13 +106,10 @@ int main(void)
 			reset_direction();
 
 			set_order(pointA_int);
-
 		}
     chThdSleepMilliseconds(10);
 	} // END OF WHILE LOOP
-
-motors_stop();
-
+	motors_stop();
 }
 
 #define STACK_CHK_GUARD 0xe2dee396
