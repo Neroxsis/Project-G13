@@ -1,9 +1,8 @@
 /*
  * main.c
  *
- *  Created on: 07.05.2022
- *      Author: Dominik Helbing, Simona Herren
- *  	 Group: G13
+ * Author: Dominik Helbing, Simona Herren
+ * Group: G13
  */
 
 #include "ch.h"
@@ -81,14 +80,15 @@ int main(void)
 
 	//infinite loop
 	while(1){
+		// check if robot is at pointB
 		if(check_order_pointB()){
 			set_leds1357(1);
 			set_front_led(0);
 
-			// turn towards starting point
+			// turn towards starting pointA
 			turn_angle(get_angle());
 
-			// placed down -> enable object detection and image processing
+			// put down -> enable object detection and image processing
 			start_search();
 			start_detection();
 
@@ -98,13 +98,15 @@ int main(void)
 			// stop object detection
 			end_detection();
 
-			// signal for us
+			// indicates that robot will reset values needed to
+			// calculate return_angle (angle robot has to turn to face pointA)
 			set_leds1357(0);
 			set_leds1357(1);
 			set_leds1357(0);
 
 			reset_direction();
 
+			// Robot is at new starting pointA
 			set_order(pointA_int);
 		}
     chThdSleepMilliseconds(10);

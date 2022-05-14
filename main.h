@@ -1,3 +1,10 @@
+/*
+ * main.h
+ *
+ * Author: Dominik Helbing, Simona Herren
+ * Group: G13
+ */
+
 #ifndef MAIN_H
 #define MAIN_H
 

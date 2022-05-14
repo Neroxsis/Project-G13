@@ -1,9 +1,8 @@
 /*
  * constants.h
  *
- *  Created on: 07.05.2022
- *      Author: Dominik Helbing, Simona Herren
- *  	 Group: G13
+ * Author: Dominik Helbing, Simona Herren
+ * Group: G13
  */
 
 #ifndef CONSTANTS_H

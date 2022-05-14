@@ -1,3 +1,10 @@
+/*
+ * calculations.c
+ *
+ * Author: Dominik Helbing, Simona Herren
+ * Group: G13
+ */
+
 #include <arm_math.h>
 #include <constants.h>
 #include <calculations.h>

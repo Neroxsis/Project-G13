@@ -1,10 +1,9 @@
 /*
  * process_image.h
  *
- *  Created on: 12.05.2022
- *      Author: Studium
+ * Author: Dominik Helbing, Simona Herren
+ * Group: G13
  */
-
 #ifndef PROCESS_IMAGE_H_
 #define PROCESS_IMAGE_H_
 

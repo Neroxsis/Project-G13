@@ -1,9 +1,8 @@
 /*
  * direction.c
  *
- *  Created on: 07.05.2022
- *      Author: Dominik Helbing, Simona Herren
- *  	 Group: G13
+ * Author: Dominik Helbing, Simona Herren
+ * Group: G13
  */
 
 #include <direction.h>
@@ -15,9 +14,7 @@
 
 #include "msgbus/messagebus.h"
 
-
 extern messagebus_t bus;
-
 
 static float relative_rotation_z = 0;
 static int16_t distance = 0;
@@ -29,6 +26,8 @@ static uint8_t picked_up = 0;
 static enum state {pointA, displacement, pointB};
 static enum state order = pointA;
 
+
+// calculates by which angle the robot has to turn to go to pointA
 static THD_WORKING_AREA(waThdGoalCalculations, 1024);
 static THD_FUNCTION(ThdGoalCalculations, arg) {
 
@@ -40,31 +39,36 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
     imu_msg_t imu_values;
     messagebus_topic_t *imu_topic = messagebus_find_topic_blocking(&bus, "/imu");
 
+    // robot starts at pointA
     order = pointA;
     float period = 0.012;
 
     while(1){ //infinite loop
 
-    	// calculation relative_rotation
+    	// calculation relative_rotation (=angle by which robot was turned since reset)
     	time = chVTGetSystemTime();
 		messagebus_topic_wait(imu_topic, &imu_values, sizeof(imu_values));
 
+		// relative_rotation = rotation acceleration * period
 		if (fabs(get_gyro_deg(&imu_values, Z_AXIS)) >= ROTATION_THRESHOLD){
 			relative_rotation_z += get_gyro_deg(&imu_values, Z_AXIS) * period;
 		}
 
 
 		// ----------------------------------------------------------------------
-		//	Determines if robot is picked up and then turns on body lights
-		// doesn't work anymore if u delete the set body led in the for loops
+		// Determine if robot is picked up or put down
+		//     picked up: body LEDs on
+		// on the ground: body LEDs off
 
-		 // pointB if robot is put down
-		 if(order != pointB){
-			 //pick up
-			 if (((imu_values.acceleration[Z_AXIS]+GRAVITY) >= Z_ACC_THRESHOLD ||
+		// as long as robot is not put down, check if it is being picked up
+		// picked up: big acceleration in (z axis and (x or y axis))
+		// 			  start measuring time
+		if(order != pointB){
+			// robot picked up
+			if (((imu_values.acceleration[Z_AXIS]+GRAVITY) >= Z_ACC_THRESHOLD ||
 					(imu_values.acceleration[Z_AXIS]+GRAVITY) <= -Z_ACC_THRESHOLD) &&
 					(imu_values.acceleration[X_AXIS] >= X_ACC_THRESHOLD ||
-						imu_values.acceleration[X_AXIS] >= X_ACC_THRESHOLD)){
+					imu_values.acceleration[X_AXIS] >= X_ACC_THRESHOLD)){
 				picked_up = 1;
 				if(order == pointA){
 					time_of_flight = chVTGetSystemTime(); // save time of departure
@@ -72,7 +76,9 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 				set_body_led(picked_up);
 			 }
 
-			// put down
+			// robot put down
+			// not picked up: x_acc and y_acc are small
+			// calculate duration of flight
 			if (fabs(imu_values.acceleration[X_AXIS]) <= X_ACC_THRESHOLD &&
 				fabs(imu_values.acceleration[Y_AXIS]) <= Y_ACC_THRESHOLD){
 				picked_up = 0;
@@ -83,8 +89,9 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 				set_body_led(picked_up);
 			}
 
-			// pointB if robot is put down
-
+			// if robot picked up: point A -> displacement
+			// if robot NOT picked up: displacement -> pointB
+			// b)
 			if (picked_up){
 				order = displacement;
 			} else {
@@ -94,16 +101,18 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 			}
 		}
 
-		//return angle is calculated here
+		// values to calculate return angle are saved here
+		// x_acc and y_acc saved 360ms after robot was picked up
 		if(order == displacement){
 		   	counter_displacement ++;
 		   	if(counter_displacement == 30){
 		   		x_acc_displacement = imu_values.acceleration[X_AXIS];
 		   		y_acc_displacement = imu_values.acceleration[Y_AXIS];
 		   	}
-		}//end if
+		}
 
-		 chThdSleepUntilWindowed(time, time + MS2ST(12));	// IMU reads new values every 250 Hz -> Source CITE !!!
+		// IMU reads new values every 250 Hz -> Source CITE !!!
+		 chThdSleepUntilWindowed(time, time + MS2ST(12));
 
     }
 }
@@ -137,18 +146,22 @@ void reset_direction(void){
 	relative_rotation_z = 0;
 }
 
-//or I could just take the acc during the displacement and then take the sign here...
-//rethink the stuff I'm giving as parameters ... !!
+// input: x_acc, y_acc measured shortly after robot picked up
+//		  angle: relative rotation of robot measured at pointB
+//output: degrees that robot has to turn to face the direction of pointA
 float return_angle(float x_acc, float y_acc, float angle){
 	int16_t theta = 0;
-	float THRESHOLD = 0.08; //still has to be calibrated
+	float THRESHOLD = 0.08;
 
+	// - PI <= theta <= PI
 	theta = (int16_t)(atan2(y_acc, x_acc)*PI_DEG/M_PI);
 
+	// error management:
+	// if robot moved less than 30mm, return angle = 0
 	if (distance <= DISTANCE_THRESHOLD){
 		return 0;
 	}
-
+	// Case 1: Robot is moved along an axis
 	if(fabs(x_acc) <= THRESHOLD){
 		if(y_acc > 0){
 			return 0.0 - angle;
@@ -161,20 +174,25 @@ float return_angle(float x_acc, float y_acc, float angle){
 		}else{
 			return 90.0 - angle;
 		}
+	// Case 2: Robot is NOT moved along an axis
 	}else{
-
+		//divide into quadrants using the sign of x_acc, y_acc
 		if(x_acc > 0){
-			if(y_acc > 0){	// quadrant I  OK
+			if(y_acc > 0){
+				//quadrant I
 				return -90 + theta - angle;
-			} else {							// quadrant IV
+			} else {
+				//quadrant IV
 				return - 180 - theta + angle;
 			}
 		}
 
 		if(x_acc < 0){
-			if(y_acc > 0){	// quadrant II  OK
+			if(y_acc > 0){
+				//quadrant II  OK
 				return -90 + theta - angle;
-			} else {							// quadrant III
+			} else {
+				//quadrant III
 				return 90 + (180 + theta) - angle;
 			}
 		}
