@@ -1,13 +1,10 @@
 /*
  * motor.c
  *
- *  Created on: 28.04.2022
- *      Author: Studium
+ *  Created on: 07.05.2022
+ *      Author: Dominik Helbing, Simona Herren
+ *  	 Group: G13
  */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include <arm_math.h>
 #include <constants.h>
@@ -16,7 +13,6 @@
 #include <detection.h>
 
 #include "motors.h"
-#include <chprintf.h>
 
 #define ONE_TURN_STEPS 1200
 #define WHEEL_PERIM 13 //cm

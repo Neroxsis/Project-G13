@@ -1,8 +1,9 @@
 /*
  * motor.h
  *
- *  Created on: 28.04.2022
- *      Author: Studium
+ *  Created on: 07.05.2022
+ *      Author: Dominik Helbing, Simona Herren
+ *  	 Group: G13
  */
 
 #ifndef MOTOR_C

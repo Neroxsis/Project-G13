@@ -1,19 +1,19 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+/*
+ * main.c
+ *
+ *  Created on: 07.05.2022
+ *      Author: Dominik Helbing, Simona Herren
+ *  	 Group: G13
+ */
 
 #include "ch.h"
 #include "hal.h"
 #include "memory_protection.h"
 #include <usbcfg.h>
 #include <main.h>
-#include <chprintf.h>
 #include <motors.h>
-#include <audio/microphone.h>
 #include "sensors/proximity.h"
-#include "leds.h"
-
-#include <arm_math.h>
+#include <leds.h>
 
 #include <constants.h>
 #include "calculations.h"
@@ -81,9 +81,6 @@ int main(void)
 
 	//infinite loop
 	while(1){
-		chprintf((BaseSequentialStream *)&SD3, "relative rotation z =%.2f \r\n\n", get_relative_rotation_z());
-		chprintf((BaseSequentialStream *)&SD3, "x_acc =%.2f \r\n\n", get_x_acc());
-		chprintf((BaseSequentialStream *)&SD3, "x_acc =%.2f \r\n\n", get_y_acc());
 		if(check_order_pointB()){
 			 set_led(LED1, 1);
 			 chThdSleepMilliseconds(500);
@@ -94,10 +91,7 @@ int main(void)
 			 set_led(LED7, 1);
 
 			// turn towards starting point
-			// simplify !!!
-			 // do this differnently
-			turn_angle(return_angle(get_x_acc_displacement(), get_y_acc_displacement(), get_relative_rotation_z()));
-
+			turn_angle(get_angle());
 			// Drive distance in a straight line
 			set_front_led(0);
 			start_search();
@@ -105,40 +99,14 @@ int main(void)
 			drive_distance(get_distance());
 
 			end_detection();
-//			set_counter_displacement(0);	//do this in direction.c
-//			set_x_acc_sign_displacement(0);
-//			set_y_acc_sign_displacement(0);
-//			set_x_acc_displacement(0);
-//			set_relative_rotation_z(0);
+
+			set_leds1357(0);
+			set_leds1357(1);
+			set_leds1357(0);
 
 			reset_direction();
 
-			set_led(LED1, 0);
-			chThdSleepMilliseconds(200);
-			set_led(LED3, 0);
-			chThdSleepMilliseconds(200);
-			set_led(LED5, 0);
-			chThdSleepMilliseconds(200);
-			set_led(LED7, 0);
-			chThdSleepMilliseconds(200);
-			set_led(LED1, 1);
-			chThdSleepMilliseconds(200);
-			set_led(LED3, 1);
-			chThdSleepMilliseconds(200);
-			set_led(LED5, 1);
-			chThdSleepMilliseconds(200);
-			set_led(LED7, 1);
-			chThdSleepMilliseconds(200);
-			set_led(LED1, 0);
-			chThdSleepMilliseconds(200);
-			set_led(LED3, 0);
-			chThdSleepMilliseconds(200);
-			set_led(LED5, 0);
-			chThdSleepMilliseconds(200);
-			set_led(LED7, 0);
-
-
-			set_order(0);  // 0 = pointA -> Magic number
+			set_order(pointA_int);
 
 		}
     chThdSleepMilliseconds(10);

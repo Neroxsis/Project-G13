@@ -9,11 +9,6 @@
 #include <constants.h>
 #include <leds.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <chprintf.h>
-
 static uint8_t object_detected = 0;
 static uint8_t detect = 0;
 

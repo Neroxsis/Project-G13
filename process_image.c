@@ -5,12 +5,6 @@
  *      Author: Studium
  */
 
-
-#include "ch.h"
-#include "hal.h"
-#include <chprintf.h>
-#include <usbcfg.h>
-
 #include <camera/po8030.h>
 #include <camera/dcmi_camera.h>
 #include <constants.h>

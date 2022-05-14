@@ -1,3 +1,11 @@
+/*
+ * constants.h
+ *
+ *  Created on: 07.05.2022
+ *      Author: Dominik Helbing, Simona Herren
+ *  	 Group: G13
+ */
+
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
@@ -33,14 +41,16 @@
 // directions
 #define GRAVITY 9.81
 //should I always put an f at the end?
-#define X_ACC_THRESHOLD 0.07
-#define Y_ACC_THRESHOLD 0.07
-#define X_ROTATION_THRESHOLD 1.5
-#define Y_ROTATION_THRESHOLD 1.5
+#define X_ACC_THRESHOLD 0.07f
+#define Y_ACC_THRESHOLD 0.07f
+#define Z_ACC_THRESHOLD 2.0f
+#define X_ROTATION_THRESHOLD 1.5f
+#define Y_ROTATION_THRESHOLD 1.5f
 #define ROTATION_THRESHOLD 0.001f
 #define SPEED_MMPCS 3 // 300 mm per s or 3 mm per cs (10^-2 s)
+#define DISTANCE_THRESHOLD 20.0f //mm
 
 // main
-#define Z_ACC_THRESHOLD 2 //not yet calibrated maybe even lower
+#define pointA_int 0
 
 #endif /* CONSTANTS_H */
