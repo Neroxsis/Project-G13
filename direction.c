@@ -218,14 +218,6 @@ void set_order(int8_t i){
 	if (i==2){order=pointB;}
 }
 
-float get_save_return_angle(void){
-	return save_return_angle;
-}
-
-void set_save_return_angle(float angle){
-	save_return_angle = angle;
-}
-
 int16_t get_counter_displacement(void){
 	return counter_displacement;
 }

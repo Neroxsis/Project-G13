@@ -109,16 +109,15 @@ int main(void)
 			// Drive distance in a straight line
 			set_front_led(0);
 			//start_search();
-			//start_detection();
+			start_detection();
 			drive_distance(get_distance());
 
-			//end_detection();
+			end_detection();
 			set_counter_displacement(0);	//do this in direction.c
 			set_x_acc_sign_displacement(0);
 			set_y_acc_sign_displacement(0);
 			set_x_acc_displacement(0);
 			set_relative_rotation_z(0);
-			set_save_return_angle(0);
 
 			set_led(LED1, 0);
 			chThdSleepMilliseconds(200);
