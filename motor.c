@@ -28,17 +28,15 @@
 static float diff_x = 0, diff_y = 0; // difference due to object in steps
 static uint8_t found_goal = 0;
 
-/**************************************Private Functions*******************************************/
-
-// algorithm to evade an object
+/******************************Private Functions********************************/
 int32_t evade_obj_alg(void){
 	static int32_t old_pos = 0;
 	static int32_t diff = 0;
 	static int16_t alpha = 0;
-	static float steps = 0; // float for sin calculations
+	static float steps = 0; // float for sin calculations D:
 	static int8_t sign_of_diff = 0;
 	static int32_t evade_steps = 0;
-	old_pos = right_motor_get_pos(); // save old step count
+	old_pos = right_motor_get_pos();
 	motors_reset_pos();
 	do{
 		switch(get_object_det()){
@@ -50,13 +48,13 @@ int32_t evade_obj_alg(void){
 				while(get_object_det() == 1){
 					chThdSleepMilliseconds(10);
 					diff = right_motor_get_pos() - left_motor_get_pos(); // calculates difference between right and left wheel
-					if(diff > ONE_TURN_STEPS){ // if the robot turned too far left
+					if(diff > ONE_TURN_STEPS){
 						false_alarm(diff);
 						break;
 					}
 				}
 				steps = right_motor_get_pos(); // saves step count
-				alpha = (diff / 2) * PI_DEG / (ONE_TURN_STEPS / 2);  // -> angle turned
+				alpha = (diff / 2) * (PI_DEG / 2) / (ONE_TURN_STEPS / 4);  // -> angle turned
 				break;
 
 			case 2:
@@ -65,7 +63,7 @@ int32_t evade_obj_alg(void){
 				while(get_object_det() == 2){
 					chThdSleepMilliseconds(10);
 				}
-				// if we go to case 3 from 2 we drive a bit further
+				// if we get to case 3 from 2 we drive a bit further
 				if(get_object_det() == 3){
 					// drive 4 cm so that the object is passed
 					motors_drive_dir(FORWARDS, 1);
@@ -92,17 +90,17 @@ int32_t evade_obj_alg(void){
 				}
 				steps = right_motor_get_pos(); // saves step count
 				diff = right_motor_get_pos() - left_motor_get_pos(); // calculates difference between right and left wheel
-				alpha = (diff / 2) * PI_DEG / (ONE_TURN_STEPS / 2);  // -> angle turned
+				alpha = (diff / 2) * (PI_DEG / 2) / (ONE_TURN_STEPS / 4);  // -> angle turned
 				break;
 
 			case 4:
 				// false alarm
 				motors_drive_dir(TURN_RIGHT, 2);
 				sign_of_diff = sign(diff);
-				while(get_object_det() == 4){
+				while(get_object_det() == 3){
 					chThdSleepMilliseconds(10);
 					diff = right_motor_get_pos() - left_motor_get_pos();
-					if(sign_of_diff != sign(diff)){
+					if(sign_of_diff != sign(diff)){ // robot turned further right than initially -> passed simple object
 						reset_obj_det();
 					}
 				}
@@ -114,14 +112,13 @@ int32_t evade_obj_alg(void){
 		}
 	}while(get_object_det());
 	motors_drive_dir(FORWARDS, 1);
-	old_pos += diff_y; // add distance traveled while evading object to old step count
+	old_pos += diff_y;
 	diff_y = 0; // reset
 	return old_pos;
 }
 
 /*****************************Public Functions***********************************/
 
-// turn the robot by a given angle. positive angle -> left turn, negative -> right turn
 void turn_angle(int16_t angle){
 	static int32_t angle_steps = 0;
 	// reset position
@@ -144,7 +141,6 @@ void turn_angle(int16_t angle){
 
 //-----------------------------------------------------
 
-// drive a given distance, while evading objects. distance is in mm
 void drive_distance(float distance){
 	static float distance_steps = 0;
 
@@ -169,13 +165,13 @@ void drive_distance(float distance){
 
 	// if the robot found the goal platform
 	if(found_goal){
-		found_goal = 0; // reset
+		found_goal = 0;
 		distance_steps = DIST_TO_GOAL * ONE_TURN_STEPS / WHEEL_PERIM;
 		drive_steps(distance_steps, FORWARDS);
 	}else{ // if not turn on spot
 		turn_angle(360);
 		if(found_goal){
-			found_goal = 0; // reset
+			found_goal = 0;
 			distance_steps = DIST_TO_GOAL * ONE_TURN_STEPS / WHEEL_PERIM;
 			drive_steps(distance_steps, FORWARDS);
 		}
@@ -185,7 +181,6 @@ void drive_distance(float distance){
 
 //------------------------------------------------------------------
 
-// dive a distance forwards or backwards. distance in steps
 void drive_steps(int32_t steps, enum dir direction){
 	// reset position
 	motors_reset_pos();
@@ -210,17 +205,11 @@ void motors_stop(void){
 	left_motor_set_speed(OFF);
 }
 
-//-------------------------------------------------------------------
-
 void motors_reset_pos(void){
 	right_motor_set_pos(CLEAR);
 	left_motor_set_pos(CLEAR);
 }
 
-//-------------------------------------------------------------------
-
-// set the motor speed to be able to drive forwards, backwards or turn on the spot
-// fraction sets how many fractions of the max_speed the movement is
 void motors_drive_dir(enum dir direction, uint8_t fraction){
 	if(fraction == 0){
 		fraction = 1;
@@ -248,9 +237,8 @@ void motors_drive_dir(enum dir direction, uint8_t fraction){
 	}
 }
 
-//-------------------------------------------------------
 
-// used to tell that the red paper was found
+// 0 = searching, higher = found
 void set_found_goal(void){
 	found_goal = 1;
 }

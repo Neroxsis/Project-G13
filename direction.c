@@ -40,7 +40,7 @@ static float print_theta = 0;
 
 static uint8_t picked_up = 0;
 static int16_t counter_displacement = 0;
-static int16_t save_return_angle = 0;
+static float save_return_angle = 0;
 
 static enum state {pointA, displacement, pointB};
 static enum state order = pointA;
@@ -87,29 +87,27 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 		}
 
 
+
 		// ----------------------------------------------------------------------
 		//	Determines if robot is picked up and then turns on body lights
 		// doesn't work anymore if u delete the set body led in the for loops
 
 		// checks if robot is on the ground
-		 if (fabs(imu_values.acceleration[Z_AXIS] + GRAVITY) < Z_ACC_THRESHOLD){
-		 	counter_small_acc++;
-		 	if(counter_small_acc == 5){
-		 		picked_up = 0;
-		 		set_body_led(picked_up);
-		 	}
-		 }
+
+
+		 //  reset counter !!
+		 // I prob don't need that
 
 
 		 // pointB if robot is put down
 		 if(order != pointB){
-
 			 //pick up
-			 if ((imu_values.acceleration[Z_AXIS]+GRAVITY) >= Z_ACC_THRESHOLD ||
-					(imu_values.acceleration[Z_AXIS]+GRAVITY) <= -Z_ACC_THRESHOLD){
+			 if (((imu_values.acceleration[Z_AXIS]+GRAVITY) >= Z_ACC_THRESHOLD ||
+					(imu_values.acceleration[Z_AXIS]+GRAVITY) <= -Z_ACC_THRESHOLD) &&
+					(imu_values.acceleration[X_AXIS] >= X_ACC_THRESHOLD ||
+						imu_values.acceleration[X_AXIS] >= X_ACC_THRESHOLD)){
 				picked_up = 1;
 				set_body_led(picked_up);
-				set_picked_up(picked_up);
 			 }
 
 			 // put down
@@ -117,7 +115,6 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 					 fabs(imu_values.acceleration[Y_AXIS]) <= Y_ACC_THRESHOLD){
 				picked_up = 0;
 				set_body_led(picked_up);
-				set_picked_up(picked_up);
 			 }
 
 			 // pointB if robot is put down
@@ -138,7 +135,9 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 		 if(order == displacement){
 		   	counter_displacement ++;
 		   	if(counter_displacement == 30){
-		    	save_return_angle = return_angle(imu_values.acceleration[X_AXIS], imu_values.acceleration[Y_AXIS], relative_rotation_z);
+		   		x_acc_displacement = imu_values.acceleration[X_AXIS];
+		   		y_acc_displacement = imu_values.acceleration[Y_AXIS];
+		    	//save_return_angle = return_angle(imu_values.acceleration[X_AXIS], imu_values.acceleration[Y_AXIS]);
 		   	}
 		 }//end if
 
@@ -239,44 +238,55 @@ int8_t check_order_pointB(void){
 	}
 }
 
+float get_x_acc(void){
+	return x_axis_acc;
+}
+float get_y_acc(void){
+	return y_axis_acc;
+}
+
+
 
 // phi = relative_rotation_z	-> does NOT work yet
 //or I could just take the acc during the displacement and then take the sign here...
 //rethink the stuff I'm giving as parameters ... !!
-float return_angle(float x_acc, float y_acc, float phi){
-	float theta = 0;
-	int8_t THRESHOLD = 0.8; //still has to be calibrated
+float return_angle(float x_acc, float y_acc, float angle){
+	int16_t theta = 0;
+	float THRESHOLD = 0.08; //still has to be calibrated
 
-	theta = atan2(y_acc, x_acc)*PI_DEG/M_PI;
+	theta = (int16_t)(atan2(y_acc, x_acc)*PI_DEG/M_PI);
 	print_theta = theta;
 
+	//if distance << -> skip this step
+
+
 	if(fabs(x_acc) <= THRESHOLD){
-		if(signf(y_acc) == 1){
-			return 0.0;
+		if(y_acc > 0){
+			return 0.0 - angle;
 		}else{
-			return 180.0;
+			return 180.0 - angle;
 		}
 	}else if(fabs(y_acc) <= THRESHOLD){
-		if(signf(x_acc) == 1){
-			return -90.0;
+		if(x_acc > 0){
+			return -90.0 - angle;
 		}else{
-			return 90.0;
+			return 90.0 - angle;
 		}
 	}else{
 
-		if(signf(x_acc) == 1){
-			if(signf(y_acc) == 1){	// quadrant I  OK
-				return -90 + theta + phi;	//-phi
+		if(x_acc > 0){
+			if(y_acc > 0){	// quadrant I  OK
+				return -90 + theta - angle;
 			} else {							// quadrant IV
-				return - 180 - theta + phi;
+				return - 180 - theta + angle;
 			}
 		}
 
-		if(signf(x_acc) == -1){
-			if(signf(y_acc) == 1){	// quadrant II  OK
-				return -90 + theta - phi;
-			} else {							// quadrant III Wrong: N, gernerally maybe a bit off
-				return 90 + (180 + theta) - phi; // used to be -
+		if(x_acc < 0){
+			if(y_acc > 0){	// quadrant II  OK
+				return -90 + theta - angle;
+			} else {							// quadrant III
+				return 90 + (180 + theta) - angle;
 			}
 		}
 	}
