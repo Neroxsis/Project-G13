@@ -29,10 +29,18 @@
 // camera
 #define RED_TH 100
 #define BLUE_TH 10
+
 // directions
 #define GRAVITY 9.81
+//should I always put an f at the end?
+#define X_ACC_THRESHOLD 0.07
+#define Y_ACC_THRESHOLD 0.07
+#define X_ROTATION_THRESHOLD 1.5
+#define Y_ROTATION_THRESHOLD 1.5
+#define ROTATION_THRESHOLD 0.001f
+#define SPEED_MMPCS 3 // 300 mm per s or 3 mm per cs (10^-2 s)
 
 // main
-#define Z_ACC_THRESHOLD 2 //not yet calbibrated maybe even lower
+#define Z_ACC_THRESHOLD 2 //not yet calibrated maybe even lower
 
 #endif /* CONSTANTS_H */

@@ -29,14 +29,9 @@ extern messagebus_t bus;
 static float relative_rotation_z = 0;
 static int16_t distance = 0;
 
-static float x_axis_acc = 0;
-static float y_axis_acc = 0;
-static float z_axis_acc = 0;
-static float x_acc_sign_displacement = 0;
-static float y_acc_sign_displacement = 0;
+
 static float x_acc_displacement = 0;
 static float y_acc_displacement = 0;
-static float print_theta = 0;
 
 static uint8_t picked_up = 0;
 static int16_t counter_displacement = 0;
@@ -55,25 +50,9 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
     imu_msg_t imu_values;
     messagebus_topic_t *imu_topic = messagebus_find_topic_blocking(&bus, "/imu");
 
-    float period_rot = 0.012;
     order = pointA;
     int8_t counter_small_acc = 0;
-
-
-#define ACCELERATION_NOISE_TH 42
-#define NINETY_DEGREE 90
-#define WAIT_TIME 1234
-#define ACTIVATION_TH 45245
-#define X_ACC_THRESHOLD 0.07
-#define Y_ACC_THRESHOLD 0.07
-#define ROTATION_THRESHOLD 0.001f
-#define X_ROTATION_THRESHOLD 1.5
-#define Y_ROTATION_THRESHOLD 1.5
-#define SPEED_CORRECTION 100
-#define THRESHOLD_RETURN_ANGLE 0.2
-
-
-
+    float period = 0.012;
 
     while(1){ //infinite loop
 
@@ -82,7 +61,7 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 		messagebus_topic_wait(imu_topic, &imu_values, sizeof(imu_values));
 
 		if (fabs(get_gyro_deg(&imu_values, Z_AXIS)) >= ROTATION_THRESHOLD){
-			relative_rotation_z += get_gyro_deg(&imu_values, Z_AXIS) * period_rot;
+			relative_rotation_z += get_gyro_deg(&imu_values, Z_AXIS) * period;
 		}
 
 
@@ -90,12 +69,6 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 		// ----------------------------------------------------------------------
 		//	Determines if robot is picked up and then turns on body lights
 		// doesn't work anymore if u delete the set body led in the for loops
-
-		// checks if robot is on the ground
-
-
-		 //  reset counter !!
-		 // I prob don't need that
 
 
 		 // pointB if robot is put down
@@ -118,7 +91,6 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 				picked_up = 0;
 				if(order == displacement){
 					time_of_flight = chVTGetSystemTime() - time_of_flight; // duration of flight in System ticks
-#define SPEED_MMPCS 3 // 300 mm per s or 3 mm per cs (10^-2 s)
 					distance = ST2MS(time_of_flight)/10 * SPEED_MMPCS;
 				}
 				set_body_led(picked_up);
@@ -142,7 +114,6 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 		   	if(counter_displacement == 30){
 		   		x_acc_displacement = imu_values.acceleration[X_AXIS];
 		   		y_acc_displacement = imu_values.acceleration[Y_AXIS];
-		    	//save_return_angle = return_angle(imu_values.acceleration[X_AXIS], imu_values.acceleration[Y_AXIS]);
 		   	}
 		}//end if
 
@@ -153,10 +124,6 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 
 void direction_init(void){
 	chThdCreateStatic(waThdGoalCalculations, sizeof(waThdGoalCalculations), NORMALPRIO, ThdGoalCalculations, NULL);
-}
-
-void set_picked_up(uint8_t picked_up_){
-	picked_up = picked_up_;
 }
 
 float get_relative_rotation_z(void){
@@ -171,9 +138,6 @@ int16_t get_distance(void){
 	return distance;
 }
 
-float get_z_axis_acc(void){
-	return z_axis_acc;
-}
 
 
 float get_x_acc_displacement(void){
@@ -192,21 +156,7 @@ void set_y_acc_displacement(float y_acc_displacement_){
 	y_acc_displacement = y_acc_displacement_;
 }
 
-float get_print_theta(void){
-	return print_theta;
-}
 
-uint8_t get_picked_up(void){
-	return picked_up;
-}
-
-void set_x_acc_sign_displacement(int8_t sign){
-	x_acc_sign_displacement = sign;
-}
-
-void set_y_acc_sign_displacement(int8_t sign){
-	y_acc_sign_displacement = sign;
-}
 
 enum state get_order(void){
 	return order;
@@ -218,14 +168,6 @@ void set_order(int8_t i){
 	if (i==2){order=pointB;}
 }
 
-int16_t get_counter_displacement(void){
-	return counter_displacement;
-}
-
-void set_counter_displacement(int16_t counter){
-	counter_displacement = counter;
-}
-
 int8_t check_order_pointB(void){
 	if(order == pointB){
 		return 1;
@@ -234,11 +176,10 @@ int8_t check_order_pointB(void){
 	}
 }
 
-float get_x_acc(void){
-	return x_axis_acc;
-}
-float get_y_acc(void){
-	return y_axis_acc;
+void reset_direction(void){
+	counter_displacement = 0;
+	x_acc_displacement = 0;
+	relative_rotation_z = 0;
 }
 
 
@@ -251,10 +192,8 @@ float return_angle(float x_acc, float y_acc, float angle){
 	float THRESHOLD = 0.08; //still has to be calibrated
 
 	theta = (int16_t)(atan2(y_acc, x_acc)*PI_DEG/M_PI);
-	print_theta = theta;
 
 	//if distance << -> skip this step
-
 
 	if(fabs(x_acc) <= THRESHOLD){
 		if(y_acc > 0){

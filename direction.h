@@ -25,14 +25,6 @@ void set_x_acc_displacement(float x_acc_displacement_);
 float get_y_acc_displacement(void);
 void set_y_acc_displacement(float y_acc_displacement_);
 
-void set_y_acc_sign_displacement(int8_t sign);
-void set_x_acc_sign_displacement(int8_t sign);
-
-float get_print_theta(void);
-
-uint8_t get_picked_up(void);
-void set_picked_up(uint8_t picked_up_);
-
 enum state get_order(void);
 void set_order(int8_t i);
 
