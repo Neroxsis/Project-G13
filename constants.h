@@ -23,7 +23,7 @@
 #define RIGHT_IR_SENSOR 2
 #define RIGHT_BACK_IR_SENSOR 3
 #define FRONT_LEFT_IR_SENSOR 7
-#define IR_THRESHHOLD 100
+#define IR_THRESHOLD 100
 #define FALSE_ALARM 1000
 
 // no magic numbers

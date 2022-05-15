@@ -26,7 +26,7 @@ static THD_FUNCTION(ThdObstacleDetection, arg) {
     while(1){
     	while(!object_detected && detect){
     		// Test for object
-    		if(get_calibrated_prox(FRONT_LEFT_IR_SENSOR) > IR_THRESHHOLD || get_calibrated_prox(FRONT_RIGHT_IR_SENSOR) > IR_THRESHHOLD){
+    		if(get_calibrated_prox(FRONT_LEFT_IR_SENSOR) > IR_THRESHOLD || get_calibrated_prox(FRONT_RIGHT_IR_SENSOR) > IR_THRESHOLD){
     			object_detected = 1;
     		}
     		chThdSleepMilliseconds(20); //a bit slower than 50 Hz should be enough
@@ -37,23 +37,23 @@ static THD_FUNCTION(ThdObstacleDetection, arg) {
     		switch(object_detected){
     			case 1:
     				// Turn left until right sensor "sees" the object and 45° front no longer sees it
-    				if(get_calibrated_prox(RIGHT_IR_SENSOR) > IR_THRESHHOLD && get_calibrated_prox(RIGHT_FRONT_IR_SENSOR)){
+    				if(get_calibrated_prox(RIGHT_IR_SENSOR) > IR_THRESHOLD && get_calibrated_prox(RIGHT_FRONT_IR_SENSOR)){
     					object_detected = 2;
     				}
     				break;
     			case 2:
     				// Drive straight until right sensor no longer detects an object
-    				if(get_calibrated_prox(RIGHT_IR_SENSOR) < IR_THRESHHOLD){
+    				if(get_calibrated_prox(RIGHT_IR_SENSOR) < IR_THRESHOLD){
     					object_detected = 3;
-    				}else if(get_calibrated_prox(RIGHT_FRONT_IR_SENSOR) > IR_THRESHHOLD){
+    				}else if(get_calibrated_prox(RIGHT_FRONT_IR_SENSOR) > IR_THRESHOLD){
     					object_detected = 1;
     				} // if not turned enough -> square object
     				break;
     			case 3:
     				// turn right until right sensor sees the object
-    				if(get_calibrated_prox(RIGHT_IR_SENSOR) > IR_THRESHHOLD){
+    				if(get_calibrated_prox(RIGHT_IR_SENSOR) > IR_THRESHOLD){
     					object_detected = 2;
-    				}else if(get_calibrated_prox(RIGHT_FRONT_IR_SENSOR) > IR_THRESHHOLD){
+    				}else if(get_calibrated_prox(RIGHT_FRONT_IR_SENSOR) > IR_THRESHOLD){
     					object_detected = 1;
     				} // if it didn't catch right sensor while turning
     				break;

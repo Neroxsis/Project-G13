@@ -83,7 +83,6 @@ int main(void)
 	while(1){
 		if(check_order_pointB()){
 			set_leds1357(1);
-			set_front_led(0);
 
 			// turn towards starting point
 			turn_angle(get_angle());
@@ -102,6 +101,7 @@ int main(void)
 			set_leds1357(0);
 			set_leds1357(1);
 			set_leds1357(0);
+			set_front_led(0);
 
 			reset_direction();
 
