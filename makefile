@@ -17,7 +17,7 @@ CSRC += ./main.c \
 		./process_image.c \
 
 #Header folders to include
-INCDIR += ./constants.h \
+INCDIR += /constants.h \
 
 #Jump to the main Makefile
 include $(GLOBAL_PATH)/Makefile

@@ -11,7 +11,7 @@
 #include "ch.h"
 #include "hal.h"
 
-static enum states {pointA, displacement, pointB};
+enum states {pointA, displacement, pointB};
 
 void direction_init(void);
 int16_t get_distance(void);

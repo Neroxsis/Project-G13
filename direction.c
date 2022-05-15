@@ -6,7 +6,8 @@
  */
 
 #include <direction.h>
-#include <math.h>
+#include <arm_math.h>
+#include <stdlib.h>
 #include <constants.h>
 #include <sensors/imu.h>
 #include <calculations.h>

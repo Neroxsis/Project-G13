@@ -6,6 +6,7 @@
  */
 
 #include <arm_math.h>
+#include <stdlib.h>
 #include <constants.h>
 #include <calculations.h>
 #include <motor.h>
@@ -125,10 +126,10 @@ void turn_angle(int16_t angle){
 	}
 	motors_drive_dir(direction, FAST);
 
-	while(abs(angle_steps) > abs(right_motor_get_pos()) && !found_goal){
+	while((abs(angle_steps) > abs(right_motor_get_pos())) && !found_goal){
 		chThdSleepMilliseconds(20);
 	}
-	motors_stop();
+	//motors_stop();
 }
 
 //-----------------------------------------------------
