@@ -17,7 +17,7 @@ static uint8_t search = 0;
 
 void has_red(uint8_t* buffer);
 
-static THD_WORKING_AREA(waThdProcessImage, 1024);
+static THD_WORKING_AREA(waThdProcessImage, 1024); // array of 640 bytes
 static THD_FUNCTION(ThdProcessImage, arg) {
 
     chRegSetThreadName(__FUNCTION__);

@@ -40,10 +40,6 @@
 #define EVADE_TURN_RIGHT 3
 #define EVADE_FA 4
 
-// imu
-#define INCLINE_TH -0.5f
-#define DIVIDE_BYZ 0.1f
-
 // camera
 #define IMAGE_BUFFER_SIZE 640
 #define RED_TH 110
@@ -51,7 +47,6 @@
 
 // directions
 #define GRAVITY 9.81
-//should I always put an f at the end?
 #define X_ACC_THRESHOLD 0.07f
 #define Y_ACC_THRESHOLD 0.07f
 #define Z_ACC_THRESHOLD 2.0f

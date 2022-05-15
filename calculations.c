@@ -12,7 +12,7 @@
 static float sine[91]; // from 0 to 90 degree
 static float cosine[91];
 
-// filling out the first quadrant for each degree of sine and cosin
+// filling out the first quadrant for each degree of sine and cosine
 // math.h uses radian: convert degrees to radian
 void lookup_init(void){
 	for(uint8_t i=0; i<(PI_DEG_F/2 + 1); i++){
@@ -27,28 +27,28 @@ void lookup_init(void){
 
 // returns for all values a cosine of the value
 float get_cos(int16_t angle){
-	while(angle >= 360) { angle -= 360; }
-	while(angle <= -360) { angle += 360; }
+	while(angle >= 2*PI_DEG) { angle -= 2*PI_DEG; }
+	while(angle <= -2*PI_DEG) { angle += 2*PI_DEG; }
 	// angle between without -360 to 360
 
 	if(angle >= 0){
-		if(angle <= 90){
+		if(angle <= PI_DEG/2){
 			return cosine[angle];
-		}else if(angle <= 180){
+		}else if(angle <= PI_DEG){
 			return -cosine[PI_DEG - angle];
-		}else if(angle <= 270){
+		}else if(angle <= 3*PI_DEG/2){
 			return -cosine[angle - PI_DEG];
-		}else if(angle <= 360){ // < 360
+		}else if(angle <= 2*PI_DEG){ // < 360
 			return cosine[2*PI_DEG - angle];
 		}
 	}else{	// negative angle
-		if(angle >= -90){
+		if(angle >= -PI_DEG/2){
 			return cosine[-angle];
-		}else if(angle >= -180){
+		}else if(angle >= -PI_DEG){
 			return -cosine[PI_DEG + angle];
-		}else if(angle >= -270){
+		}else if(angle >= -3*PI_DEG/2){
 			return -cosine[-(PI_DEG + angle)];
-		}else if(angle >= -360){ // > -360
+		}else if(angle >= -2*PI_DEG){ // > -360
 			return cosine[2*PI_DEG + angle];
 		}
 	}
@@ -61,27 +61,27 @@ float get_cos(int16_t angle){
 
 // returns for all values a sine of the value
 float get_sin(int16_t angle){
-	while(angle >= 360) { angle -= 360; }
-	while(angle <= -360) { angle += 360; }
+	while(angle >= 2*PI_DEG) { angle -= 2*PI_DEG; }
+	while(angle <= -2*PI_DEG) { angle += 2*PI_DEG; }
 	// angle between without -360 to 360
 	if(angle >= 0){
-		if(angle <= 90){ // Quadrant I
+		if(angle <= PI_DEG/2){ // Quadrant I
 			return sine[angle];
-		}else if(angle <= 180){ // Quadrant II
+		}else if(angle <= PI_DEG){ // Quadrant II
 			return sine[PI_DEG - angle];
-		}else if(angle <= 270){ // Quadrant III
+		}else if(angle <= 3*PI_DEG/2){ // Quadrant III
 			return -sine[angle - PI_DEG];
-		}else if(angle <= 360){ // < 360  Quadrant IV
+		}else if(angle <= 2*PI_DEG){ // < 360  Quadrant IV
 			return -sine[2*PI_DEG - angle];
 		}
 	}else{	// negative angle
-		if(angle >= -90){ // Quadrant IV
+		if(angle >= -PI_DEG/2){ // Quadrant IV
 			return -sine[-angle];
-		}else if(angle >= -180){ // Quadrant III
+		}else if(angle >= -PI_DEG){ // Quadrant III
 			return -sine[PI_DEG + angle];
-		}else if(angle >= -270){ // Quadrant II
+		}else if(angle >= -3*PI_DEG/2){ // Quadrant II
 			return sine[-(PI_DEG + angle)];
-		}else if(angle >= -360){ // > -360  Quadrant I
+		}else if(angle >= -2*PI_DEG){ // > -360  Quadrant I
 			return sine[2*PI_DEG + angle];
 		}
 	}

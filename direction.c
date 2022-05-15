@@ -28,7 +28,7 @@ static enum states state = pointA;
 
 
 // calculates by which angle the robot has to turn to go to pointA
-static THD_WORKING_AREA(waThdGoalCalculations, 1024);
+static THD_WORKING_AREA(waThdGoalCalculations, 256); // multiple structs
 static THD_FUNCTION(ThdGoalCalculations, arg) {
 
     chRegSetThreadName(__FUNCTION__);

@@ -31,6 +31,7 @@ int32_t evade_obj_alg(void){
 	old_pos = right_motor_get_pos(); // save old step count
 	motors_reset_pos();
 	do{
+		// depending on in which phase the algorithm is, it will act differently
 		switch(get_object_det()){
 			case 0:
 				break;
@@ -46,7 +47,7 @@ int32_t evade_obj_alg(void){
 					}
 				}
 				steps = right_motor_get_pos(); // saves step count
-				alpha = (diff / 2) * PI_DEG / (ONE_TURN_STEPS / 2);  // -> angle turned
+				alpha = (diff / 2) * PI_DEG / (ONE_TURN_STEPS / 2);  // calculates angle turned
 				break;
 
 			case EVADE_DRIVE_STRAIGHT:
@@ -82,11 +83,11 @@ int32_t evade_obj_alg(void){
 				}
 				steps = right_motor_get_pos(); // saves step count
 				diff = right_motor_get_pos() - left_motor_get_pos(); // calculates difference between right and left wheel
-				alpha = (diff / 2) * PI_DEG / (ONE_TURN_STEPS / 2);  // -> angle turned
+				alpha = (diff / 2) * PI_DEG / (ONE_TURN_STEPS / 2);  // calculates angle turned
 				break;
 
 			case EVADE_FA:
-				// false alarm
+				// false alarm -> turn right until original orientation is reached
 				motors_drive_dir(TURN_RIGHT, SLOW);
 				sign_of_diff = sign(diff);
 				while(get_object_det() == EVADE_FA){
@@ -124,12 +125,13 @@ void turn_angle(int16_t angle, uint8_t speed){
 	if(angle_steps < 0){
 		direction = TURN_RIGHT;
 	}
+	// set direction
 	motors_drive_dir(direction, speed);
 
 	while((abs(angle_steps) > abs(right_motor_get_pos())) && !found_goal){
 		chThdSleepMilliseconds(20);
 	}
-	//motors_stop();
+	motors_stop();
 }
 
 //-----------------------------------------------------
@@ -158,24 +160,23 @@ void drive_distance(float distance){
 		// turn back to the left to have correct direction
 		turn_angle(QUARTER_TURN, FAST);
 	}
-	motors_stop();
 
-	// search and end distance
+	// search distance + distance driven if red picture is analyzed
 	distance_steps = DIST_TO_GOAL * ONE_TURN_STEPS / WHEEL_PERIM;
-	// if the robot found the goal platform
+	// if the robot found the goal platform drive the distance straight
 	if(found_goal){
 		found_goal = CLEAR; // reset
 		drive_steps(distance_steps, FORWARDS);
-	}else{ // if not turn on spot
+	}else{ // if not, turn 360° on the spot
 		turn_angle(FULL_TURN, SLOW);
-		while(!found_goal){ // if still not, execute a small search algorithm
+		while(!found_goal){ // if still nothing found, execute a small search algorithm until found
 			drive_steps(distance_steps*2/3, FORWARDS); // drive a distance in one direction
 			turn_angle(FULL_TURN, SLOW); // look around -> search -> slow
-			turn_angle(HALF_TURN, FAST); // turn back to get back to original position
+			turn_angle(HALF_TURN, FAST); // turn back to get back to original position -> fast
 			drive_steps(distance_steps*2/3, FORWARDS); // drive back to original position
 			turn_angle(QUARTER_TURN, FAST); // turn to next direction
-		}
-		if(found_goal){
+		} // -> search in a "+" shape
+		if(found_goal){ // drive onto paper
 			found_goal = CLEAR; // reset
 			distance_steps = DIST_TO_GOAL * ONE_TURN_STEPS / WHEEL_PERIM;
 			drive_steps(distance_steps, FORWARDS);
