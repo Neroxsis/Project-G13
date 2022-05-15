@@ -115,17 +115,26 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
     }
 }
 
+/*****************************Public Functions***********************************/
+
 void direction_init(void){
-	chThdCreateStatic(waThdGoalCalculations, sizeof(waThdGoalCalculations), NORMALPRIO, ThdGoalCalculations, NULL);
+	chThdCreateStatic(waThdGoalCalculations, sizeof(waThdGoalCalculations),
+			NORMALPRIO, ThdGoalCalculations, NULL);
 }
+
+// ------------------------------------------------------------------
 
 int16_t get_distance(void){
 	return distance;
 }
 
+// ------------------------------------------------------------------
+
 void set_state(enum states state_){
 	state = state_;
 }
+
+// ------------------------------------------------------------------
 
 int8_t check_state_pointB(void){
 	if(state == pointB){
@@ -135,6 +144,8 @@ int8_t check_state_pointB(void){
 	}
 }
 
+// ------------------------------------------------------------------
+
 void reset_direction(void){
 	counter_displacement = CLEAR;
 	x_acc_displacement = CLEAR;
@@ -142,15 +153,20 @@ void reset_direction(void){
 	relative_rotation_z = CLEAR;
 }
 
+// ------------------------------------------------------------------
+
 int16_t get_angle(void){
 	// error management:
 	// if robot moved less than 20mm, return angle = 0
 	if (get_distance() <= DISTANCE_THRESHOLD){
 		return 0;
 	} else {
-		return return_angle(x_acc_displacement, y_acc_displacement, (int16_t) relative_rotation_z);
+		return return_angle(x_acc_displacement, y_acc_displacement,
+				(int16_t) relative_rotation_z);
 	}
 }
+
+// ------------------------------------------------------------------
 
 void set_leds1357(int8_t i){
 	set_led(LED1, i);

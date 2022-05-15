@@ -149,7 +149,7 @@ int8_t signf(float nb){
 //		  angle: relative rotation of robot measured at pointB
 //output: degrees that robot has to turn to face the direction of pointA
 
-int16_t return_angle(float x_acc, float y_acc, int16_t angle){		//put in calculation
+int16_t return_angle(float x_acc, float y_acc, int16_t angle){
 	int16_t theta = CLEAR;
 
 	// - PI <= theta <= PI

@@ -27,7 +27,8 @@ static THD_FUNCTION(ThdObstacleDetection, arg) {
     while(1){
     	while(!object_detected && detect){
     		// Test for object
-    		if(get_calibrated_prox(FRONT_LEFT_IR_SENSOR) > IR_THRESHOLD || get_calibrated_prox(FRONT_RIGHT_IR_SENSOR) > IR_THRESHOLD){
+    		if(get_calibrated_prox(FRONT_LEFT_IR_SENSOR) > IR_THRESHOLD ||
+    				get_calibrated_prox(FRONT_RIGHT_IR_SENSOR) > IR_THRESHOLD){
     			object_detected = EVADE_TURN_LEFT;
     		}
     		chThdSleepMilliseconds(20); //a bit slower than 50 Hz should be enough
@@ -38,7 +39,8 @@ static THD_FUNCTION(ThdObstacleDetection, arg) {
     		switch(object_detected){
     			case EVADE_TURN_LEFT:
     				// Turn left until right sensor "sees" the object and 45° front no longer sees it
-    				if(get_calibrated_prox(RIGHT_IR_SENSOR) > IR_THRESHOLD && get_calibrated_prox(RIGHT_FRONT_IR_SENSOR)){
+    				if(get_calibrated_prox(RIGHT_IR_SENSOR) > IR_THRESHOLD &&
+    						get_calibrated_prox(RIGHT_FRONT_IR_SENSOR)){
     					object_detected = EVADE_DRIVE_STRAIGHT;
     				}
     				break;
@@ -70,7 +72,8 @@ static THD_FUNCTION(ThdObstacleDetection, arg) {
 
 // creates thread in which the values of the IR sensor are processed
 void obj_det_init(void){
-	chThdCreateStatic(waThdObstacleDetection, sizeof(waThdObstacleDetection), NORMALPRIO, ThdObstacleDetection, NULL);
+	chThdCreateStatic(waThdObstacleDetection, sizeof(waThdObstacleDetection),
+			NORMALPRIO, ThdObstacleDetection, NULL);
 }
 
 //-------------------------------------------------------------------------
@@ -94,6 +97,8 @@ void reset_obj_det(void){
 void start_detection(void){
 	detect = ON;
 }
+
+// ------------------------------------------------------------------
 
 void end_detection(void){
 	detect = OFF;
