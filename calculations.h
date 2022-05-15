@@ -1,8 +1,8 @@
 /*
  * calculations.h
  *
- *  Created on: 26.04.2022
- *      Author: Studium
+ * Author: Dominik Helbing, Simona Herren
+ * Group: G13
  */
 
 #ifndef CALCULATIONS_H

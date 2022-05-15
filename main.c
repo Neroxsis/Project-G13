@@ -1,9 +1,8 @@
 /*
  * main.c
  *
- *  Created on: 07.05.2022
- *      Author: Dominik Helbing, Simona Herren
- *  	 Group: G13
+ * Author: Dominik Helbing, Simona Herren
+ * Group: G13
  */
 
 #include "ch.h"
@@ -62,32 +61,34 @@ int main(void)
 
     //start calibration
     //indication that calibration is in progress
-    set_led(LED1, 1);
-    set_led(LED3, 1);
-    set_led(LED5, 1);
-    set_led(LED7, 1);
-    chThdSleepMilliseconds(1000);
+    set_led(LED1, ON);
+    set_led(LED3, ON);
+    set_led(LED5, ON);
+    set_led(LED7, ON);
+    chThdSleepMilliseconds(SLEEP_1000);
 
-    set_led(LED1, 0);
+    set_led(LED1, OFF);
     calibrate_acc();
-    set_led(LED3, 0);
+    set_led(LED3, OFF);
     calibrate_ir();
-    set_led(LED5, 0);
+    set_led(LED5, OFF);
     calibrate_gyro();
-    set_led(LED7, 0);
+    set_led(LED7, OFF);
     obj_det_init();
     direction_init();
 
 
 	//infinite loop
 	while(1){
+		// check if robot is at pointB
 		if(check_order_pointB()){
-			set_leds1357(1);
+			set_leds1357(ON);
+			set_front_led(OFF);
 
-			// turn towards starting point
+			// turn towards starting pointA
 			turn_angle(get_angle());
 
-			// placed down -> enable object detection and image processing
+			// put down -> enable object detection and image processing
 			start_search();
 			start_detection();
 
@@ -97,17 +98,18 @@ int main(void)
 			// stop object detection
 			end_detection();
 
-			// signal for us
-			set_leds1357(0);
-			set_leds1357(1);
-			set_leds1357(0);
-			set_front_led(0);
+			// indicates that robot will reset values needed to
+			// calculate return_angle (angle robot has to turn to face pointA)
+			set_leds1357(OFF);
+			set_leds1357(ON);
+			set_leds1357(OFF);
 
 			reset_direction();
 
-			set_order(pointA_int);
+			// Robot is at new starting pointA
+			set_order(POINTA_INT);
 		}
-    chThdSleepMilliseconds(10);
+    chThdSleepMilliseconds(SLEEP_10);
 	} // END OF WHILE LOOP
 	motors_stop();
 }

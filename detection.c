@@ -1,9 +1,10 @@
 /*
  * detection.c
  *
- *  Created on: 27.04.2022
- *      Author: Studium
+ * Author: Dominik Helbing, Simona Herren
+ * Group: G13
  */
+
 #include "detection.h"
 #include "sensors/proximity.h"
 #include <constants.h>

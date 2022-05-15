@@ -1,9 +1,8 @@
 /*
  * motor.c
  *
- *  Created on: 07.05.2022
- *      Author: Dominik Helbing, Simona Herren
- *  	 Group: G13
+ * Author: Dominik Helbing, Simona Herren
+ * Group: G13
  */
 
 #include <arm_math.h>

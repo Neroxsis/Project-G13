@@ -1,8 +1,8 @@
 /*
  * detection.h
  *
- *  Created on: 27.04.2022
- *      Author: Studium
+ * Author: Dominik Helbing, Simona Herren
+ * Group: G13
  */
 
 #ifndef DETECTION_H

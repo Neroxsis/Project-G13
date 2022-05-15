@@ -1,9 +1,8 @@
 /*
  * constants.h
  *
- *  Created on: 07.05.2022
- *      Author: Dominik Helbing, Simona Herren
- *  	 Group: G13
+ * Author: Dominik Helbing, Simona Herren
+ * Group: G13
  */
 
 #ifndef CONSTANTS_H
@@ -44,11 +43,21 @@
 #define X_ACC_THRESHOLD 0.07f
 #define Y_ACC_THRESHOLD 0.07f
 #define Z_ACC_THRESHOLD 2.0f
+#define ACC_THRESHOLD 0.08f
 #define X_ROTATION_THRESHOLD 1.5f
 #define Y_ROTATION_THRESHOLD 1.5f
 #define ROTATION_THRESHOLD 0.001f
 #define SPEED_MMPCS 3 // 300 mm per s or 3 mm per cs (10^-2 s)
 #define DISTANCE_THRESHOLD 20.0f //mm
+#define PERIOD 0.012f //s
+#define IN_AIR 1
+#define ON_GROUND 0
+#define MAX_COUNTER_DISPLACEMENT 30
+#define POINTA_INT 0
+#define DISPLACEMENT_INT 1
+#define POINTB_INT 2
+#define SLEEP_200 200 //ms
+#define PI_DEG_F 180.0f
 
 //motor
 #define ONE_TURN_STEPS 1200
@@ -59,6 +68,9 @@
 #define DIST_TO_GOAL 20 //cm
 
 // main
-#define pointA_int 0
+#define ON 1
+//#define OFF 0
+#define SLEEP_10 10 //ms
+#define SLEEP_1000 1000 //ms
 
 #endif /* CONSTANTS_H */
