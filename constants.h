@@ -16,6 +16,9 @@
 // angle
 #define PI_DEG 180
 #define PI_DEG_F 180.0f
+#define FULL_TURN 360
+#define HALF_TURN 180
+#define QUARTER_TURN 90
 
 // prox
 #define FRONT_RIGHT_IR_SENSOR 0
@@ -43,7 +46,7 @@
 
 // camera
 #define IMAGE_BUFFER_SIZE 640
-#define RED_TH 100
+#define RED_TH 110
 #define BLUE_TH 10
 
 // directions
@@ -62,14 +65,15 @@
 #define IN_AIR 1
 #define ON_GROUND 0
 #define MAX_COUNTER_DISPLACEMENT 30
+#define COMPENSATION 360.0f/210.0f // one turn gives a rotation of 210 degree instead of 360
 
 //motor
-#define ONE_TURN_STEPS 1200
+#define ONE_TURN_STEPS 1300
 #define WHEEL_PERIM 13 //cm
 #define TURN_SPEED 800
 #define DRIVE_SPEED 900
 #define EVADE_DISTANCE 4 //cm
-#define DIST_TO_GOAL 20 //cm
+#define DIST_TO_GOAL 15 //cm
 #define FAST 1
 #define SLOW 2
 

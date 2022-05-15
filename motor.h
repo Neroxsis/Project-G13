@@ -12,7 +12,7 @@
 #include "ch.h"
 
 enum dir {FORWARDS, BACKWARDS, TURN_LEFT, TURN_RIGHT};
-void turn_angle(int16_t angle);
+void turn_angle(int16_t angle, uint8_t speed);
 void drive_distance(float distance);
 void drive_steps(int32_t steps, enum dir direction);
 void motors_stop(void);

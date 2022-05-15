@@ -102,7 +102,7 @@ int32_t evade_obj_alg(void){
 				panic_handler("object_detection_value");
 				return 0;
 		}
-	}while(get_object_det());
+	}while(get_object_det() && !found_goal);
 	motors_drive_dir(FORWARDS, FAST);
 	old_pos += diff_y; // add distance traveled while evading object to old step count
 	diff_y = CLEAR; // reset
@@ -112,7 +112,7 @@ int32_t evade_obj_alg(void){
 /*****************************Public Functions***********************************/
 
 // turn the robot by a given angle. positive angle -> left turn, negative -> right turn
-void turn_angle(int16_t angle){
+void turn_angle(int16_t angle, uint8_t speed){
 	static int32_t angle_steps = 0;
 	// reset position
 	motors_reset_pos();
@@ -124,7 +124,7 @@ void turn_angle(int16_t angle){
 	if(angle_steps < 0){
 		direction = TURN_RIGHT;
 	}
-	motors_drive_dir(direction, FAST);
+	motors_drive_dir(direction, speed);
 
 	while((abs(angle_steps) > abs(right_motor_get_pos())) && !found_goal){
 		chThdSleepMilliseconds(20);
@@ -146,7 +146,7 @@ void drive_distance(float distance){
 	// drive forwards or backwards depending on the sign, +x means the robot is too
 	// far left and because of the +90° turn needs to drive forward
 	if(diff_x){
-		turn_angle(-90);
+		turn_angle(-QUARTER_TURN, FAST);
 
 		enum dir direction = FORWARDS;
 		if(diff_x < 0){
@@ -154,16 +154,27 @@ void drive_distance(float distance){
 		}
 		drive_steps((int)diff_x, direction);
 		diff_x = CLEAR; // reset
+
+		// turn back to the left to have correct direction
+		turn_angle(QUARTER_TURN, FAST);
 	}
 	motors_stop();
 
+	// search and end distance
+	distance_steps = DIST_TO_GOAL * ONE_TURN_STEPS / WHEEL_PERIM;
 	// if the robot found the goal platform
 	if(found_goal){
 		found_goal = CLEAR; // reset
-		distance_steps = DIST_TO_GOAL * ONE_TURN_STEPS / WHEEL_PERIM;
 		drive_steps(distance_steps, FORWARDS);
 	}else{ // if not turn on spot
-		turn_angle(360);
+		turn_angle(FULL_TURN, SLOW);
+		while(!found_goal){ // if still not, execute a small search algorithm
+			drive_steps(distance_steps*2/3, FORWARDS); // drive a distance in one direction
+			turn_angle(FULL_TURN, SLOW); // look around -> search -> slow
+			turn_angle(HALF_TURN, FAST); // turn back to get back to original position
+			drive_steps(distance_steps*2/3, FORWARDS); // drive back to original position
+			turn_angle(QUARTER_TURN, FAST); // turn to next direction
+		}
 		if(found_goal){
 			found_goal = CLEAR; // reset
 			distance_steps = DIST_TO_GOAL * ONE_TURN_STEPS / WHEEL_PERIM;

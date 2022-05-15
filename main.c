@@ -85,7 +85,7 @@ int main(void)
 			set_leds1357(ON);
 
 			// turn towards starting pointA
-			turn_angle(get_angle());
+			turn_angle(get_angle(), FAST);
 
 			// put down -> enable object detection and image processing
 			start_search();

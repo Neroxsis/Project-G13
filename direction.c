@@ -19,7 +19,7 @@ extern messagebus_t bus;
 
 static float x_acc_displacement = 0;
 static float y_acc_displacement = 0;
-static int16_t relative_rotation_z = 0;
+static float relative_rotation_z = 0;
 static int16_t counter_displacement = 0;
 static int16_t distance = 0;
 static uint8_t picked_up = 0;
@@ -50,7 +50,7 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 
 		// relative_rotation = rotation acceleration * PERIOD
 		if (abs(get_gyro_deg(&imu_values, Z_AXIS)) >= ROTATION_THRESHOLD){
-			relative_rotation_z += get_gyro_deg(&imu_values, Z_AXIS) * PERIOD;
+			relative_rotation_z += get_gyro_deg(&imu_values, Z_AXIS) * PERIOD * COMPENSATION;
 		}
 
 
@@ -148,7 +148,7 @@ int16_t get_angle(void){
 	if (get_distance() <= DISTANCE_THRESHOLD){
 		return 0;
 	} else {
-		return return_angle(x_acc_displacement, y_acc_displacement, relative_rotation_z);
+		return return_angle(x_acc_displacement, y_acc_displacement, (int16_t) relative_rotation_z);
 	}
 }
 
