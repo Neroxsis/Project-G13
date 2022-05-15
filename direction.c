@@ -16,14 +16,14 @@
 
 extern messagebus_t bus;
 
-static float relative_rotation_z = 0;
 static float x_acc_displacement = 0;
 static float y_acc_displacement = 0;
+static int16_t relative_rotation_z = 0;
 static int16_t counter_displacement = 0;
 static int16_t distance = 0;
 static uint8_t picked_up = 0;
 
-static enum order state = pointA;
+static enum states state = pointA;
 
 
 // calculates by which angle the robot has to turn to go to pointA
@@ -48,7 +48,7 @@ static THD_FUNCTION(ThdGoalCalculations, arg) {
 		messagebus_topic_wait(imu_topic, &imu_values, sizeof(imu_values));
 
 		// relative_rotation = rotation acceleration * PERIOD
-		if (fabs(get_gyro_deg(&imu_values, Z_AXIS)) >= ROTATION_THRESHOLD){
+		if (abs(get_gyro_deg(&imu_values, Z_AXIS)) >= ROTATION_THRESHOLD){
 			relative_rotation_z += get_gyro_deg(&imu_values, Z_AXIS) * PERIOD;
 		}
 
@@ -122,7 +122,7 @@ int16_t get_distance(void){
 	return distance;
 }
 
-void set_state(enum order state_){
+void set_state(enum states state_){
 	state = state_;
 }
 
@@ -142,7 +142,13 @@ void reset_direction(void){
 }
 
 int16_t get_angle(void){
-	return return_angle(x_acc_displacement, y_acc_displacement, relative_rotation_z);
+	// error management:
+	// if robot moved less than 20mm, return angle = 0
+	if (get_distance() <= DISTANCE_THRESHOLD){
+		return 0;
+	} else {
+		return return_angle(x_acc_displacement, y_acc_displacement, relative_rotation_z);
+	}
 }
 
 void set_leds1357(int8_t i){
