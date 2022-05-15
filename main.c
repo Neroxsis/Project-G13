@@ -53,8 +53,8 @@ int main(void)
     imu_start();
     proximity_start();
     clear_leds();
-    set_body_led(0);
-    set_front_led(0);
+    set_body_led(OFF);
+    set_front_led(OFF);
     lookup_init();
     process_image_start();
 
