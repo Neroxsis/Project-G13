@@ -25,6 +25,13 @@
 #define FRONT_LEFT_IR_SENSOR 7
 #define IR_THRESHOLD 100
 #define FALSE_ALARM 1000
+
+// no magic numbers
+#define CLEAR 0
+#define OFF 0
+#define ON 1
+
+// CHECK ??
 #define EVADE_TURN_LEFT 1
 #define EVADE_DRIVE_STRAIGHT 2
 #define EVADE_TURN_RIGHT 3
@@ -55,10 +62,7 @@
 #define IN_AIR 1
 #define ON_GROUND 0
 #define MAX_COUNTER_DISPLACEMENT 30
-#define POINTA_INT 0
-#define DISPLACEMENT_INT 1
-#define POINTB_INT 2
-#define SLEEP_200 200 //ms
+#define PI_DEG_F 180.0f
 
 //motor
 #define ONE_TURN_STEPS 1200
@@ -69,13 +73,5 @@
 #define DIST_TO_GOAL 20 //cm
 #define FAST 1
 #define SLOW 2
-
-// no magic numbers
-#define CLEAR 0
-#define OFF 0
-#define ON 1
-#define SLEEP_10 10 //ms
-#define SLEEP_1000 1000 //ms
-
 
 #endif /* CONSTANTS_H */

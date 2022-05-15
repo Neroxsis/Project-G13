@@ -11,14 +11,14 @@
 #include "ch.h"
 #include "hal.h"
 
+static enum order {pointA, displacement, pointB};
+
 void direction_init(void);
 int16_t get_distance(void);
-void set_order(int8_t i);
-int8_t check_order_pointB(void);
+void set_state(enum order state_);
+int8_t check_state_pointB(void);
 void reset_direction(void);
 int16_t get_angle(void);
 void set_leds1357(int8_t);
-
-
 
 #endif /* DIRECTION_H_ */

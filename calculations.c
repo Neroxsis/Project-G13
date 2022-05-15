@@ -8,6 +8,7 @@
 #include <arm_math.h>
 #include <constants.h>
 #include <calculations.h>
+#include <direction.h>
 
 static float sine[91]; // from 0 to 90 degree
 static float cosine[91];
@@ -139,4 +140,67 @@ int8_t signf(float nb){
 	}else{
 		return 0;
 	}
+}
+
+
+//--------------------------------------------------------------------------------------------
+
+// input: x_acc, y_acc measured shortly after robot picked up
+//		  angle: relative rotation of robot measured at pointB
+//output: degrees that robot has to turn to face the direction of pointA
+
+float return_angle(float x_acc, float y_acc, float angle){		//put in calculation
+	int16_t theta = CLEAR;
+
+	// - PI <= theta <= PI
+	theta = (int16_t)(atan2(y_acc, x_acc)*PI_DEG_F/M_PI);
+
+	// error management:
+	// if robot moved less than 30mm, return angle = 0
+	if (get_distance() <= DISTANCE_THRESHOLD){
+		return 0;
+	}
+	// Case 1: Robot is moved along an axis
+	// robot moved along y axis -> very small x_acc
+	if(fabs(x_acc) <= ACC_THRESHOLD){
+		if(y_acc > 0){
+			return - angle;		// positive y axis
+		}else{
+			return PI_DEG_F - angle;	// negative y axis
+		}
+
+	// robot moved along x axis -> very small y_acc
+	}else if(fabs(y_acc) <= ACC_THRESHOLD){
+		if(x_acc > 0){
+			return -PI_DEG_F/2 - angle;	//positive x_axis
+		}else{
+			return PI_DEG_F/2 - angle;	//negative x_axis
+		}
+
+	// Case 2: Robot is NOT moved along an axis
+	}else{
+		//divide into quadrants using sign of x_acc, y_acc
+		if(x_acc > 0){
+			if(y_acc > 0){
+				//quadrant I
+				return - PI_DEG_F/2 + theta - angle;
+			} else {
+				//quadrant IV
+				return - PI_DEG_F - theta + angle;
+			}
+		}
+
+		if(x_acc < 0){
+			if(y_acc > 0){
+				//quadrant II  OK
+				return - PI_DEG_F/2 + theta - angle;
+			} else {
+				//quadrant III
+				return PI_DEG_F/2 + (PI_DEG_F + theta) - angle;
+			}
+		}
+	}
+
+	return 0;
+
 }
