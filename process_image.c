@@ -13,9 +13,12 @@
 
 #include <process_image.h>
 
+#define IMAGE_BUFFER_SIZE 640
+
 static uint8_t search = 0;
 
 void has_red(uint8_t* buffer);
+void has_red2(uint8_t* buffer);
 
 static THD_WORKING_AREA(waProcessImage, 1024);
 static THD_FUNCTION(ProcessImage, arg) {
@@ -71,7 +74,7 @@ void has_red(uint8_t* buffer){
 	// if red mean is high enough without blue being high we end searching and tell
 	// the motor to drive onto the paper
 	if(mean_red > RED_TH && mean_blue < BLUE_TH){
-		set_front_led(ON);
+		set_front_led(1);
 		set_found_goal();
 		end_search();
 	}
@@ -89,12 +92,12 @@ void process_image_start(void){
 //----------------------------------------------------------------------------------------------
 
 void start_search(void){
-	search = ON;
+	search = 1;
 }
 
 //----------------------------------------------------------------------------------------------
 
 void end_search(void){
-	search = OFF;
+	search = 0;
 }
 

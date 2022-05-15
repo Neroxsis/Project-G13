@@ -16,6 +16,6 @@ float get_sin(int16_t angle);
 int16_t get_gyro_deg(imu_msg_t *imu_values, uint8_t axis);
 int8_t sign(int32_t nb);
 int8_t signf(float nb);
-float return_angle(float x_acc, float y_acc, float angle);
+int16_t return_angle(float x_acc, float y_acc, int16_t angle);
 
 #endif /* CALCULATIONS_H */

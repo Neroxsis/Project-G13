@@ -27,8 +27,8 @@ static THD_FUNCTION(ThdObstacleDetection, arg) {
     while(1){
     	while(!object_detected && detect){
     		// Test for object
-    		if(get_calibrated_prox(FRONT_LEFT_IR_SENSOR) > IR_THRESHOLD || get_calibrated_prox(FRONT_RIGHT_IR_SENSOR) > IR_THRESHOLD){
-    			object_detected = EVADE_TURN_LEFT;
+    		if(get_calibrated_prox(FRONT_LEFT_IR_SENSOR) > IR_THRESHHOLD || get_calibrated_prox(FRONT_RIGHT_IR_SENSOR) > IR_THRESHHOLD){
+    			object_detected = 1;
     		}
     		chThdSleepMilliseconds(20); //a bit slower than 50 Hz should be enough
     	}
@@ -36,26 +36,26 @@ static THD_FUNCTION(ThdObstacleDetection, arg) {
     	while(object_detected){
     		time = chVTGetSystemTime();
     		switch(object_detected){
-    			case EVADE_TURN_LEFT:
+    			case 1:
     				// Turn left until right sensor "sees" the object and 45° front no longer sees it
-    				if(get_calibrated_prox(RIGHT_IR_SENSOR) > IR_THRESHOLD && get_calibrated_prox(RIGHT_FRONT_IR_SENSOR)){
-    					object_detected = EVADE_DRIVE_STRAIGHT;
+    				if(get_calibrated_prox(RIGHT_IR_SENSOR) > IR_THRESHHOLD && get_calibrated_prox(RIGHT_FRONT_IR_SENSOR)){
+    					object_detected = 2;
     				}
     				break;
-    			case EVADE_DRIVE_STRAIGHT:
+    			case 2:
     				// Drive straight until right sensor no longer detects an object
-    				if(get_calibrated_prox(RIGHT_IR_SENSOR) < IR_THRESHOLD){
-    					object_detected = EVADE_TURN_RIGHT;
-    				}else if(get_calibrated_prox(RIGHT_FRONT_IR_SENSOR) > IR_THRESHOLD){
-    					object_detected = EVADE_TURN_LEFT;
+    				if(get_calibrated_prox(RIGHT_IR_SENSOR) < IR_THRESHHOLD){
+    					object_detected = 3;
+    				}else if(get_calibrated_prox(RIGHT_FRONT_IR_SENSOR) > IR_THRESHHOLD){
+    					object_detected = 1;
     				} // if not turned enough -> square object
     				break;
-    			case EVADE_TURN_RIGHT:
+    			case 3:
     				// turn right until right sensor sees the object
-    				if(get_calibrated_prox(RIGHT_IR_SENSOR) > IR_THRESHOLD){
-    					object_detected = EVADE_DRIVE_STRAIGHT;
-    				}else if(get_calibrated_prox(RIGHT_FRONT_IR_SENSOR) > IR_THRESHOLD){
-    					object_detected = EVADE_TURN_LEFT;
+    				if(get_calibrated_prox(RIGHT_IR_SENSOR) > IR_THRESHHOLD){
+    					object_detected = 2;
+    				}else if(get_calibrated_prox(RIGHT_FRONT_IR_SENSOR) > IR_THRESHHOLD){
+    					object_detected = 1;
     				} // if it didn't catch right sensor while turning
     				break;
     			default:
@@ -84,32 +84,32 @@ uint8_t get_object_det(void){
 
 // sets object_detected back to 0 only if it's in phase 3 or 4 (false alarm) of the algorithm
 void reset_obj_det(void){
-	if(object_detected == EVADE_TURN_RIGHT || object_detected == EVADE_FA){
-		object_detected = CLEAR;
+	if(object_detected == 3 || object_detected == 4){
+		object_detected = 0;
 	}
 }
 
 //-------------------------------------------------------------------------
 
 void start_detection(void){
-	detect = ON;
+	detect = 1;
 }
 
 void end_detection(void){
-	detect = OFF;
+	detect = 0;
 }
 
 //-----------------------------------------------------------------
 
 // set object_detected to 4 so that the motor turns back, if it is a false alarm
 void false_alarm(int32_t diff){
-	if(diff > FALSE_ALARM && object_detected == EVADE_TURN_LEFT){
-		object_detected = EVADE_FA;
+	if(diff > FALSE_ALARM && object_detected == 1){
+		object_detected = 4;
 		// indication for us
-		set_led(LED1, ON);
-		set_led(LED3, ON);
-		set_led(LED5, ON);
-		set_led(LED7, ON);
+		set_led(LED1, 1);
+		set_led(LED3, 1);
+		set_led(LED5, 1);
+		set_led(LED7, 1);
 		chThdSleepMilliseconds(300);
 		clear_leds();
 	}

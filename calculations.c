@@ -8,7 +8,6 @@
 #include <arm_math.h>
 #include <constants.h>
 #include <calculations.h>
-#include <direction.h>
 
 static float sine[91]; // from 0 to 90 degree
 static float cosine[91];
@@ -16,9 +15,9 @@ static float cosine[91];
 // filling out the first quadrant for each degree of sine and cosin
 // math.h uses radian: convert degrees to radian
 void lookup_init(void){
-	for(uint8_t i=0; i<(PI_DEG/2 + 1); i++){
-		sine[i] = sin(i*M_PI/PI_DEG); 	// from math.h
-		cosine[i] = cos(i*M_PI/PI_DEG);
+	for(uint8_t i=0; i<(PI_DEG_F/2 + 1); i++){
+		sine[i] = sin(i*M_PI/PI_DEG_F); 	// from math.h
+		cosine[i] = cos(i*M_PI/PI_DEG_F);
 	}
 }
 
@@ -149,17 +148,12 @@ int8_t signf(float nb){
 //		  angle: relative rotation of robot measured at pointB
 //output: degrees that robot has to turn to face the direction of pointA
 
-float return_angle(float x_acc, float y_acc, float angle){		//put in calculation
+int16_t return_angle(float x_acc, float y_acc, int16_t angle){		//put in calculation
 	int16_t theta = CLEAR;
 
 	// - PI <= theta <= PI
 	theta = (int16_t)(atan2(y_acc, x_acc)*PI_DEG_F/M_PI);
 
-	// error management:
-	// if robot moved less than 30mm, return angle = 0
-	if (get_distance() <= DISTANCE_THRESHOLD){
-		return 0;
-	}
 	// Case 1: Robot is moved along an axis
 	// robot moved along y axis -> very small x_acc
 	if(fabs(x_acc) <= ACC_THRESHOLD){

@@ -15,7 +15,6 @@
 
 // angle
 #define PI_DEG 180
-#define PI_DEG_F 180.0f
 
 // prox
 #define FRONT_RIGHT_IR_SENSOR 0
@@ -23,7 +22,7 @@
 #define RIGHT_IR_SENSOR 2
 #define RIGHT_BACK_IR_SENSOR 3
 #define FRONT_LEFT_IR_SENSOR 7
-#define IR_THRESHOLD 100
+#define IR_THRESHHOLD 100
 #define FALSE_ALARM 1000
 
 // no magic numbers
@@ -31,18 +30,11 @@
 #define OFF 0
 #define ON 1
 
-// CHECK ??
-#define EVADE_TURN_LEFT 1
-#define EVADE_DRIVE_STRAIGHT 2
-#define EVADE_TURN_RIGHT 3
-#define EVADE_FA 4
-
 // imu
 #define INCLINE_TH -0.5f
 #define DIVIDE_BYZ 0.1f
 
 // camera
-#define IMAGE_BUFFER_SIZE 640
 #define RED_TH 100
 #define BLUE_TH 10
 
@@ -71,7 +63,5 @@
 #define DRIVE_SPEED 900
 #define EVADE_DISTANCE 4 //cm
 #define DIST_TO_GOAL 20 //cm
-#define FAST 1
-#define SLOW 2
 
 #endif /* CONSTANTS_H */
