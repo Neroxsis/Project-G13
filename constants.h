@@ -31,7 +31,7 @@
 #define OFF 0
 #define ON 1
 
-// CHECK ??
+// object detected
 #define EVADE_TURN_LEFT 1
 #define EVADE_DRIVE_STRAIGHT 2
 #define EVADE_TURN_RIGHT 3
@@ -62,7 +62,6 @@
 #define IN_AIR 1
 #define ON_GROUND 0
 #define MAX_COUNTER_DISPLACEMENT 30
-#define PI_DEG_F 180.0f
 
 //motor
 #define ONE_TURN_STEPS 1200
