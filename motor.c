@@ -13,7 +13,7 @@
 
 #include "motors.h"
 
-static float diff_x = 0, diff_y = 0; // difference due to object in steps
+static float diff_x = 0; // difference due to object in steps
 static uint8_t found_goal = 0;
 
 /**************************************Private Functions*******************************************/
@@ -23,6 +23,7 @@ int32_t evade_obj_alg(void){
 	static int32_t old_pos = 0;
 	static int32_t diff = 0;
 	static int16_t alpha = 0;
+	static float diff_y = 0; // difference due to object in steps
 	static float steps = 0; // float for sin calculations
 	static int8_t sign_of_diff = 0;
 	static int32_t evade_steps = 0;
