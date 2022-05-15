@@ -3,7 +3,7 @@
  *
  * Author: Dominik Helbing, Simona Herren
  * Group: G13
- *
+ */
 
 #ifndef DETECTION_H
 #define DETECTION_H

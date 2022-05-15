@@ -15,7 +15,7 @@ static float cosine[91];
 // filling out the first quadrant for each degree of sine and cosin
 // math.h uses radian: convert degrees to radian
 void lookup_init(void){
-	for(uint8_t i=0; i<91; i++){
+	for(uint8_t i=0; i<(PI_DEG/2 + 1); i++){
 		sine[i] = sin(i*M_PI/PI_DEG); 	// from math.h
 		cosine[i] = cos(i*M_PI/PI_DEG);
 	}
