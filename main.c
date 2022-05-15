@@ -83,7 +83,6 @@ int main(void)
 		// check if robot is at pointB
 		if(check_state_pointB()){
 			set_leds1357(ON);
-			set_front_led(OFF);
 
 			// turn towards starting pointA
 			turn_angle(get_angle());
@@ -103,6 +102,7 @@ int main(void)
 			set_leds1357(OFF);
 			set_leds1357(ON);
 			set_leds1357(OFF);
+			set_front_led(OFF);
 
 			reset_direction();
 
