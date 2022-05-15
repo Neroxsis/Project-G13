@@ -17,8 +17,8 @@ static uint8_t search = 0;
 
 void has_red(uint8_t* buffer);
 
-static THD_WORKING_AREA(waProcessImage, 1024);
-static THD_FUNCTION(ProcessImage, arg) {
+static THD_WORKING_AREA(waThdProcessImage, 1024);
+static THD_FUNCTION(ThdProcessImage, arg) {
 
     chRegSetThreadName(__FUNCTION__);
     (void)arg;
@@ -83,7 +83,7 @@ void has_red(uint8_t* buffer){
 void process_image_start(void){
 	dcmi_start();
 	po8030_start();
-	chThdCreateStatic(waProcessImage, sizeof(waProcessImage), NORMALPRIO, ProcessImage, NULL);
+	chThdCreateStatic(waThdProcessImage, sizeof(waThdProcessImage), NORMALPRIO, ThdProcessImage, NULL);
 }
 
 //----------------------------------------------------------------------------------------------
