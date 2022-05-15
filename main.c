@@ -65,7 +65,7 @@ int main(void)
     set_led(LED3, ON);
     set_led(LED5, ON);
     set_led(LED7, ON);
-    chThdSleepMilliseconds(SLEEP_1000);
+    chThdSleepMilliseconds(1000);
 
     set_led(LED1, OFF);
     calibrate_acc();
@@ -81,7 +81,7 @@ int main(void)
 	//infinite loop
 	while(1){
 		// check if robot is at pointB
-		if(check_order_pointB()){
+		if(check_state_pointB()){
 			set_leds1357(ON);
 			set_front_led(OFF);
 
@@ -107,9 +107,9 @@ int main(void)
 			reset_direction();
 
 			// Robot is at new starting pointA
-			set_order(POINTA_INT);
+			set_state(pointA);
 		}
-    chThdSleepMilliseconds(SLEEP_10);
+    chThdSleepMilliseconds(10);
 	} // END OF WHILE LOOP
 	motors_stop();
 }

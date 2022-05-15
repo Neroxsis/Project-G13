@@ -28,6 +28,7 @@
 // no magic numbers
 #define CLEAR 0
 #define OFF 0
+#define ON 1
 
 // imu
 #define INCLINE_TH -0.5f
@@ -53,10 +54,6 @@
 #define IN_AIR 1
 #define ON_GROUND 0
 #define MAX_COUNTER_DISPLACEMENT 30
-#define POINTA_INT 0
-#define DISPLACEMENT_INT 1
-#define POINTB_INT 2
-#define SLEEP_200 200 //ms
 #define PI_DEG_F 180.0f
 
 //motor
@@ -66,11 +63,5 @@
 #define DRIVE_SPEED 900
 #define EVADE_DISTANCE 4 //cm
 #define DIST_TO_GOAL 20 //cm
-
-// main
-#define ON 1
-//#define OFF 0
-#define SLEEP_10 10 //ms
-#define SLEEP_1000 1000 //ms
 
 #endif /* CONSTANTS_H */
